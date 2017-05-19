@@ -17,6 +17,19 @@ def init():
     g.agents = list(db.agents.find())
     g.filters = list(db.filters.find())
 
+@app.route('/analytics')
+def analytics():
+
+    db = g.db
+
+    analytics = {}
+    analytics['feeds-without-articles'] = []
+    for feed in db.feeds.find():
+        if db.articles.find({'feed-id' : feed['_id']}).count() == 0:
+            analytics['feeds-without-articles'].append(feed)
+
+    return render_template('./analytics.html', analytics = analytics, feeds = g.feeds)
+
 @app.route('/statistics')
 def statistics():
 
