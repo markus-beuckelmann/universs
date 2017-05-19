@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block sidebar %}
+
+          <ul class="list-group">
+            <a class="list-group-item list-group-item-action" href="#"><span class="text-muted small numbering">#1.</span> <strong>Allgemein</strong></a>
+          </ul>
+
+  {% with prepend = "/analytics" %}
+    {% include "sidebar/sidebar-feeds.html" %}
+  {% endwith %}
+{% endblock %}
+
+{% block content %}
+
+           <h1 class="page-header">Analytik</h1>
+          <div id="content">
+            Werfe einen Blick unter die Motorhaube!
+
+            <h2>Feeds ohne Artikel</h2>
+            <ul>
+              {% for feed in analytics["feeds-without-articles"] %}
+              <li>{{ feed["title"] }} • <a href="{{ feed["url"] }}">RSS</a> • <a href="/settings/feed/{{ feed["title"] }}">Einstellungen</a></li>
+              {% endfor %}
+            </ul>
+          </div>
+
+{% endblock %}
