@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 from flask import Flask
-from flask import g
+from flask import g, render_template
 
 from base import init as dbinit
 
@@ -16,6 +16,27 @@ def init():
     g.tags = list(db.tags.find())
     g.agents = list(db.agents.find())
     g.filters = list(db.filters.find())
+
+@app.route('/statistics')
+def statistics():
+
+    db = g.db
+
+    stats = {}
+    stats['number-of-feeds'] = db.feeds.count()
+    stats['number-of-articles'] = db.articles.count()
+    stats['number-of-tags'] = db.tags.count()
+    stats['number-of-agents'] = db.agents.count()
+    stats['number-of-filters'] = db.filters.count()
+    stats['number-of-unfiltered-articles'] = db.articles.find({'show' : True}).count()
+    stats['number-of-filtered-articles'] = stats['number-of-articles'] - stats['number-of-unfiltered-articles']
+    stats['number-of-unread-articles'] = db.articles.find({'show' : True, 'read' : False}).count()
+    stats['number-of-marked-articles'] = db.articles.find({'show' : True, 'marked' : True}).count()
+
+    stats['database-size'] = db.command("dbstats")['dataSize'] / 1024.0**2
+    stats['last-update'] = db.feeds.find(sort = [('last-update', -1)], limit = 1)[0]['last-update']
+
+    return render_template('./statistics.html', stats = stats, feeds = g.feeds)
 
 if __name__ == '__main__':
 
