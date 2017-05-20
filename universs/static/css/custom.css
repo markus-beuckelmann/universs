@@ -1,0 +1,72 @@
+.sidebar::-webkit-scrollbar {
+    width: 8px;
+    background-color: #f5f5f5;
+}
+
+.sidebar::-webkit-scrollbar-track {
+	/* -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); */
+	/* border-radius: 0px; */
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+	border-radius: 0px;
+	/* -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3); */
+	background-color: #555555;
+}
+
+img#broadcast-icon {
+    /* width: 2.5em; */
+    /* height: auto; */
+    /* margin-top: .75em; */
+    margin-left: 0em;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+span.numbering {
+    float: left;
+    width: 2.5em;
+}
+
+a.article-read {
+    opacity: 0.33;
+}
+
+a.article-marked {
+    font-weight: bold;
+}
+
+div.article-content {
+    padding: 1.5em 2em;
+    font-size: 0.95em;
+    background-color: #fcfcfc;
+}
+
+div#feed-articles {
+
+    font-size: 1.1em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+div#feed-articles img {
+    max-width: 100%;
+    padding: 1em;
+    padding-left: 0em;
+    height: auto;
+}
+
+ol.breadcrumb {
+    font-size: .9em;
+    height: 2.2em;
+    margin: .3em 0em 1em 0em;
+    padding: .2em .7em;
+    vertical-align: middle;
+    background-color: #efefef;
+}
+
+span.unread-badge {
+    opacity: 0.5;
+}
