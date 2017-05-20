@@ -1,0 +1,29 @@
+            <div id="feed-articles">
+            {% if articles and articles|length > 0 %}
+            <ul>
+            {% for article in articles|sort(attribute = "date", reverse = True) %}
+            <li><span class="text-muted small numbering">#{{ loop.index }}</span> {% if special or not hide_feed_name %}{{ article["feed-name"] }}: {% endif %}<a href="#article-{{ loop.index }}" data-toggle="collapse" class="article-{% if article["read"] %}read{% else %}unread{% endif %} article-{% if article["marked"] %}marked{% else %}unmarked{% endif %}">{{ article["title"] }}</a> <span class="small text-muted">• {{ article["date"].strftime("%d.%m.%Y, %H:%M:%S Uhr (UTC)") }}</span></li>
+            <div id="article-{{ loop.index }}" class="collapse">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item"><strong>Autor</strong>: {{ article["author"] or 'Unbekannt' }}</li>
+                <li class="breadcrumb-item"><strong>Veröffentlicht</strong>: {% if article["date"] %}{{ article["date"].strftime("%d.%m.%Y, %H:%M:%S Uhr (UTC)") }}{% else %}Unbekannt{% endif %}</li>
+                <li class="breadcrumb-item"><strong>Sprache</strong>: {{ article["language"] or 'Unbekannt' }}</li>
+                <li class="breadcrumb-item"><a href="{{ article["link"] }}">Original</a></li>
+                <li class="breadcrumb-item pull-right"><button type="button" class="btn btn-warning btn-xs" onclick="$.get('/marked/{{ article["_id"] }}')">{% if article["marked"] %}Demarkieren{% else %}Markieren{% endif %}</button></li>
+                <li class="breadcrumb-item pull-right"><button type="button" class="btn btn-success btn-xs" onclick="$.get('/read/{{ article["_id"] }}')">{% if article["read"] %}Ungelesen{% else %}Gelesen{% endif %}</button></li>
+              </ol>
+              <div class="article-content well well-sm">
+                {{ article["content"]|safe }}
+              </div>
+            </div>
+            {% endfor %}
+            </ul>
+            {% else %}
+              {% if name is none %}
+              <p>Klicke auf einen Feed um seine Artikel anzuzeigen.</p>
+              <a type="button" class="btn btn-primary" href="/feeds/new">Neuer Feed</a>
+              {% else %}
+            Hier gibt es leider keine Einträge.
+              {% endif %}
+            {% endif %}
+            </div>
