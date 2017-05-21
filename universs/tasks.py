@@ -10,6 +10,15 @@ from pymongo.errors import DuplicateKeyError
 from datetime import datetime
 from hashlib import md5
 
+# By default automatically perform a full update every hour
+celery.conf.beat_schedule = {
+    'auto-update': {
+        'task': 'universs.update',
+        'schedule': 3600.0,
+    },
+}
+celery.conf.timezone = 'UTC'
+
 @celery.task(name = 'universs.update')
 def update(*args, **kwargs):
     ''' Pulls RSS articles from feeds and pushes new articles to database. '''
