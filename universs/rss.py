@@ -49,7 +49,6 @@ def _post_process(articles, title = '', verbose = False):
         if 'authors' in article and isinstance(article['authors'], (list, tuple)) and 'name' in article['authors'][0]:
             article['author'] = article['authors'][0]['name']
 
-        #dateformat = '%Y-%m-%d %H:%M:%S'
         if 'published_parsed' in article:
             article['date'] = datetime(*article['published_parsed'][:6])
         elif 'date_parsed' in article:
