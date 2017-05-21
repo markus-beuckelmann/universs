@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+from pytz import timezone
 from uuid import uuid4 as uuid
 
 from flask import Flask
@@ -110,6 +111,61 @@ def feeds(action = None, title = None):
                     return render_template('./feeds/feeds.html', name = title, feeds = g.feeds, feed = feed, articles = articles, pages = pages)
             else:
                 return render_template('./feeds/feeds.html', name = title, feeds = g.feeds, articles = [])
+
+@app.route('/settings')
+@app.route('/settings/feed/<string:name>', methods = ['GET', 'POST'])
+def settings(name = None):
+
+    db = g.db
+
+    # Edit the settings...
+    if request.method == 'POST':
+        f = {'title' : request.form['title'], 'url' : request.form['url'], 'description' : request.form['description'], 'whitelist' : [], 'blacklist' : []}
+        f['tags'] = list(filter(bool, map(lambda tag: tag.strip(), request.form['tags'].split(','))))
+        feed = db.feeds.find_one({'title' : name})
+        for key in filter(lambda key: key.startswith('agents-') or key.startswith('filters-'), request.form.keys()):
+            element, i = key.split('-')
+            value = request.form[key]
+            if value:
+                f[element].append(value)
+
+        # Save a copy of all tags before the modification
+        tags_before = set(feed['tags'])
+
+        # If the title changed, we need to update the "feed-name" field in affected articles
+        if feed['title'] != f['title']:
+            db.articles.update_many({'feed-id' : feed['_id']}, {'$set' : {'feed-name' : f['title']}})
+
+        # Update the feed information in the database
+        feed.update(f)
+        db.feeds.replace_one({'_id' : request.form['id']}, feed)
+
+        # This will create a list of all tags that were removed in the update procedure
+        deleted_tags = list(tags_before - set(f['tags']))
+        if deleted_tags:
+            # Remove the deleted tags from the respective articles
+            db.articles.update_many({'feed-id' : feed['_id']}, {'$pop' : {'tags': {'$each' : deleted_tags}}})
+
+        # This will create a list of all tags that haven't been assigned before
+        new_tags = list(set(f['tags']) - tags_before)
+        if new_tags:
+            # Append the new tags to the respective articles
+            db.articles.update_many({'feed-id' : feed['_id']}, {'$push' : {'tags': {'$each' : new_tags}}})
+
+        from tasks import update_feed_metadata, update_tag_metadata
+
+        # Update the metadata in the feed
+        update_feed_metadata.delay(identifier = feed['_id'])
+        # Update metadata for affected tags
+        [update_tag_metadata.delay(title = title) for title in deleted_tags + new_tags]
+
+        return redirect(url_for('settings'))
+    # Show settings
+    else:
+        if name:
+            feed = db.feeds.find_one({'title' : name})
+            return render_template('./settings-feed.html', name = name, feed = feed, feeds = g.feeds, agents = g.agents, filters = g.filters)
+        return render_template('./settings.html', feeds = g.feeds)
 
 @app.route('/analytics')
 def analytics():

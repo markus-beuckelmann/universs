@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block sidebar %}
+
+          <ul class="list-group">
+            <a class="list-group-item list-group-item-action" href="#"><span class="text-muted small numbering">#1.</span> <strong>Allgemein</strong></a>
+          </ul>
+
+  {% with prepend = "/settings" %}
+    {% include "sidebar/sidebar-feeds.html" %}
+  {% endwith %}
+{% endblock %}
+
+{% block content %}
+
+{% endblock %}
