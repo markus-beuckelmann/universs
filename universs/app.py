@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+from uuid import uuid4 as uuid
+
 from flask import Flask
-from flask import g, render_template, jsonify
+from flask import g, request, redirect, url_for, render_template, jsonify
 
 from celery import Celery
 
@@ -18,6 +20,7 @@ app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379'
 
 celery = Celery(app.import_name, backend = app.config['CELERY_RESULT_BACKEND'], broker = app.config['CELERY_BROKER_URL'])
 
+PER_PAGE = 100
 TIMEZONE = 'Europe/Berlin'
 TIMEFORMAT = '%d.%m.%Y, %H:%M:%S Uhr (%Z)'
 
@@ -49,6 +52,64 @@ def tasks(action, title = None, identifier = None):
         return jsonify({'message' : 'Ok', 'status' : 202, 'mimetype' : 'application/json'})
 
     jsonify({'message' : 'Not implemented', 'status' : 501, 'mimetype' : 'application/json'})
+
+@app.route('/')
+@app.route('/feeds')
+@app.route('/feeds/<string:action>', methods = ['GET', 'POST'])
+@app.route('/feeds/<string:action>/<string:title>', methods = ['GET', 'POST'])
+def feeds(action = None, title = None):
+
+    db = g.db
+
+    if request.method == 'POST':
+        if action == 'new':
+            feed = {'_id' : str(uuid()), 'title' : request.form['title'], 'url' : request.form['url'], 'description' : request.form['description'], 'whitelist' : [], 'blacklist' : []}
+            feed['tags'] = list(filter(bool, map(lambda tag: tag.strip(), request.form['tags'].split(','))))
+
+            # Push new feed to the database
+            db.feeds.insert_one(feed)
+
+            from tasks import update
+            # Pull, process and push articles from new feed
+            update.delay(identifier = feed['_id'])
+
+        return redirect(url_for('feeds'))
+    else:
+        if action == 'new':
+            return render_template('./feeds/feed-new.html', feeds = g.feeds, agents = g.agents, filters = g.filters)
+        elif action == 'delete':
+            if title:
+                feed = db.feeds.find_one({'title' : title})
+                # Delete all articles that belong to the feed
+                db.articles.delete_many({'feed-id' : feed['_id']})
+                # Delete the feed
+                db.feeds.delete_one({'_id' : feed['_id']})
+            return redirect(url_for('feeds'))
+        else:
+
+            # Pagination
+            page = request.args.get('page', 1)
+            offset = max(0, (int(page) - 1) * PER_PAGE)
+
+            if title:
+
+                if title == '_all':
+                    cursor = db.articles.find({'show' : True}, sort = [('date', -1)], skip = offset, limit = PER_PAGE)
+                    articles, N = list(cursor), cursor.count()
+                    pages = ((N // PER_PAGE) + bool(N % PER_PAGE), N)
+                    feed = {'title' : 'Alle Artikel'}
+                    return render_template('./feeds/feeds.html', name = title, feeds = g.feeds, feed = feed, articles = articles, pages = pages, special = True)
+                else:
+                    feed = db.feeds.find_one({'title' : title})
+                    if feed:
+                        cursor = db.articles.find({'feed-id' : feed['_id'], 'show' : True}, sort = [('date', -1)], skip = offset, limit = PER_PAGE)
+                        articles, N = list(cursor), cursor.count()
+                    else:
+                        articles, N = (0, 0)
+                    pages = ((N // PER_PAGE) + bool(N % PER_PAGE), N)
+                    return render_template('./feeds/feeds.html', name = title, feeds = g.feeds, feed = feed, articles = articles, pages = pages)
+            else:
+                return render_template('./feeds/feeds.html', name = title, feeds = g.feeds, articles = [])
 
 @app.route('/analytics')
 def analytics():
