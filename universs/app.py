@@ -112,6 +112,28 @@ def feeds(action = None, title = None):
             else:
                 return render_template('./feeds/feeds.html', name = title, feeds = g.feeds, articles = [])
 
+@app.route('/tags')
+@app.route('/tags/<string:title>')
+def tags(title = None):
+
+    db = g.db
+
+    # Pagination
+    page = request.args.get('page', 1)
+    offset = max(0, (int(page) - 1) * PER_PAGE)
+
+    if title:
+        tag = db.tags.find_one({'title' : title})
+        if tag:
+            cursor = db.articles.find({'show' : True, 'tags' : {'$in' : [tag['title']]}}, sort = [('date', -1)], skip = offset, limit = PER_PAGE)
+            articles, N = list(cursor), cursor.count()
+        else:
+            articles, N = (0, 0)
+        pages = ((N // PER_PAGE) + bool(N % PER_PAGE), N)
+        return render_template('./tags.html', name = title, tag = tag, tags = g.tags, articles = articles, pages = pages)
+    else:
+        return render_template('./tags.html', name = title, tags = g.tags, articles = [])
+
 @app.route('/settings')
 @app.route('/settings/feed/<string:name>', methods = ['GET', 'POST'])
 def settings(name = None):
