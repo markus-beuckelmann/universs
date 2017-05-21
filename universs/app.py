@@ -18,6 +18,9 @@ app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379'
 
 celery = Celery(app.import_name, backend = app.config['CELERY_RESULT_BACKEND'], broker = app.config['CELERY_BROKER_URL'])
 
+TIMEZONE = 'Europe/Berlin'
+TIMEFORMAT = '%d.%m.%Y, %H:%M:%S Uhr (%Z)'
+
 @app.before_request
 def init():
 
@@ -80,6 +83,13 @@ def statistics():
     stats['last-update'] = db.feeds.find(sort = [('last-update', -1)], limit = 1)[0]['last-update']
 
     return render_template('./statistics.html', stats = stats, feeds = g.feeds)
+
+@app.template_filter('dt')
+def _jinja2_filter_dt(date):
+
+    date = date.replace(tzinfo = timezone('UTC'))
+    date = date.astimezone(timezone(TIMEZONE))
+    return date.strftime(TIMEFORMAT)
 
 if __name__ == '__main__':
 
