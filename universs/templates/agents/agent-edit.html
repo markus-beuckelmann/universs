@@ -1,0 +1,34 @@
+{% extends "agents/agents.html" %}
+
+{% block content %}
+
+          <div id="content">
+            <h1 class="page-header">Bearbeite Agenten</h1>
+            <form action="/agents/edit" method="post">
+              <input type="hidden" name="id" value="{{ a["_id"] }}">
+              <div class="form-group">
+                <label for="new-agents-name">Wähle einen Namen</label>
+                <input name="name" type="text" class="form-control" id="new-agents-name" aria-describedby="new-agents-name-help" placeholder="..." value="{{ a["name"] }}">
+                <small id="new-agents-name-help" class="form-text text-muted">Auf diese Weise kannst du den Agenten leichter wiederfinden.</small>
+              </div>
+              <div class="form-group">
+                <label for="new-agents-description">Beschreibung deines Agenten</label>
+                <textarea name="description" class="form-control" id="new-agents-description" rows="2" placeholder="...">{{ a["description"] }}</textarea>
+              </div>
+              <div class="form-group">
+                <label for="new-agents-language">Programmiersprache</label>
+                <select name="language"  class="form-control" id="new-agents-language">
+                  <option{% if a["language"] == "Python" %} selected="selected"{% endif %}>Python</option>
+                  <option{% if a["language"] == "Javascript" %} selected="selected"{% endif %}>JavaScript</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="new-agents-code">Was soll ich tun?</label>
+                <textarea name="code" class="form-control" id="new-agents-code" rows="8"  aria-describedby="new-agents-code-help">{{ a["code"] }}</textarea>
+                <small id="new-agents-code-help" class="form-text text-muted">Ein Agent operiert auf einzelnen Artikeln und gibt entweder <code>True</code> oder <code>False</code> zurück. Verfügbare Felder sind: <code>feed</code>, <code>title</code>, <code>content</code>, <code>author</code>, <code>language</code>, <code>link</code></small>.
+              </div>
+              <button type="submit" class="btn btn-success">Speichern</button>
+            </form>
+          </div>
+
+{% endblock %}

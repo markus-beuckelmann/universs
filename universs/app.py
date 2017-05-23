@@ -229,6 +229,38 @@ def filters(action = None, uid = None):
         return redirect(url_for('filters'))
     return render_template('./filters/filters.html', filters = g.filters, feeds = g.feeds)
 
+@app.route('/agents')
+@app.route('/agents/<string:action>', methods = ['GET', 'POST'])
+@app.route('/agents/<string:action>/<string:uid>', methods = ['GET', 'POST'])
+def agents(action = None, uid = None, name = None):
+
+    db = g.db
+
+    if action == 'new':
+        if request.method == 'POST':
+            a = {'_id' : request.form['id'], 'name' : request.form['name'], 'description' : request.form['description'], 'language' : request.form['language'], 'code' : request.form['code']}
+            db.agents.insert_one(a)
+            return redirect(url_for('agents'))
+        else:
+            uid = int(time())
+            return render_template('./agents/agent-new.html', uid = uid, feeds = g.feeds)
+    elif action == 'edit':
+        if request.method == 'POST':
+            a = {'name' : request.form['name'], 'description' : request.form['description'], 'language' : request.form['language'], 'code' : request.form['code'], }
+            x = db.agents.find_one({'_id' : request.form['id']})
+            x.update(a)
+            db.agents.replace_one({'_id' : request.form['id']}, x)
+        else:
+            a = db.agents.find_one({'_id' : uid})
+            return render_template('./agents/agent-edit.html', a = a, feeds = g.feeds)
+        return redirect(url_for('agents'))
+    elif action == 'delete':
+        db.agents.delete_one({'_id' : uid})
+        return redirect(url_for('agents'))
+    else:
+        agents = g.get('agents', [])
+        return render_template('./agents/agents.html', feeds = g.feeds, agents = agents)
+
 @app.route('/read/<string:uid>')
 def read(uid):
 
