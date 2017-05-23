@@ -1,0 +1,22 @@
+{% extends "filters/filters.html" %}
+
+{% block content %}
+
+          <div id="content">
+            <h1 class="page-header">Bearbeite Filter</h1>
+            <form action="/filters/edit" method="post">
+              <input type="hidden" name="id" value="{{ f["_id"] }}">
+              <div class="form-group">
+                <label for="new-filter-name">Wähle einen Namen</label>
+                <input name="name" type="text" class="form-control" id="new-filter-name" aria-describedby="new-filter-name-help" placeholder="..." value="{{ f["name"] }}">
+                <small id="new-filter-name-help" class="form-text text-muted">Auf diese Weise können wir den Filter leichter wiederfinden.</small>
+              </div>
+              <div class="form-group">
+                <label for="new-filter-description">Beschreibung deines Filters</label>
+                <textarea name="description" class="form-control" id="new-filter-description" rows="2" placeholder="...">{{ f["description"] }}</textarea>
+              </div>
+              <button type="submit" class="btn btn-success">Speichern</button>
+            </form>
+          </div>
+
+{% endblock %}

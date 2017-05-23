@@ -1,0 +1,64 @@
+{% extends "filters/filters.html" %}
+
+{% block javascript %}
+
+    <script>
+    function numerate() {
+      $('fieldset div.well').each(function(i, block) {
+        $(block).find('div.row select').each(function(j, item) {
+          $(item).attr('name', 'block-' + i + '-' + j)
+        });
+      });
+    }
+    </script>
+
+{% endblock %}
+
+{% block content %}
+
+          <div id="content">
+            <h1 class="page-header">Neuer Filter</h1>
+            <form action="/filters/new" method="post">
+              <input type="hidden" name="id" value="{{ uid }}">
+              <div class="form-group">
+                <label for="new-filter-name">Wähle einen Namen</label>
+                <input name="name" type="text" class="form-control" id="new-filter-name" aria-describedby="new-filter-name-help" placeholder="...">
+                <small id="new-filter-name-help" class="form-text text-muted">Auf diese Weise kannst du den Filter leichter wiederfinden.</small>
+              </div>
+              <div class="form-group">
+                <label for="new-filter-description">Beschreibung deines Filters</label>
+                <textarea name="description" class="form-control" id="new-filter-description" rows="2" placeholder="..."></textarea>
+              </div>
+              <fieldset class="form-group">
+                <legend>Verschaltung der Filter</legend>
+                <div class="well">
+                  <div class="form-group row">
+                    <div class="col-md-1"><button type="button" class="btn btn-secondary" disabled>&</button></div>
+                    <div class="col-md-9">
+                      <select class="form-control">
+                          <option value=""></option>
+                        {% for a in agents|sort(attribute = "name") %}
+                          <option value="{{ a["_id"] }}">{{ a["name"] }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <div class="col-md-2">
+                      {% set onclickjs1 = "$(this).closest('div.row').clone().prependTo($(this).closest('div.well'))" %}
+                      <button type="button" class="btn btn-success btn-sm" onclick="{{ onclickjs1 }}">+</button>
+                      {% set onclickjs2 = "$(this).closest('div.row').remove()" %}
+                      <button type="button" class="btn btn-danger btn-sm" onclick="{{ onclickjs2 }}">-</button>
+                    </div>
+                  </div>
+                  {% set onclickjs3 = "$(this).closest('div.well').clone().prependTo($(this).closest('fieldset'))" %}
+                  <button type="button" class="btn btn-success btn-sm" onclick="{{ onclickjs3 }}">Hinzufügen</button>
+                  {% set onclickjs4 = "$(this).closest('div.well').remove()" %}
+                  <button type="button" class="btn btn-danger btn-sm" onclick="{{ onclickjs4 }}">Entfernen</button>
+                </div>
+                {% set onclickjs = "$(this).closest('div.row').clone().prependTo($(this).closest('div').parent().parent())" %}
+              </fieldset>
+              <small class="form-text text-muted">Ein Filter gibt <code>True</code> zurück wenn einer der Blöcke <code>True</code> zurückgibt. Ein Block gibt <code>True</code> zurück falls alle seine Bedingungen erfüllt sind.</small><br /><br />
+              <button type="button" class="btn btn-primary" onclick="numerate(); $('form').submit()">Speichern</button>
+            </form>
+          </div>
+
+{% endblock %}

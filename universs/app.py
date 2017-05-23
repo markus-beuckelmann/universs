@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+from time import time
 from pytz import timezone
 from uuid import uuid4 as uuid
 
@@ -188,6 +189,45 @@ def settings(name = None):
             feed = db.feeds.find_one({'title' : name})
             return render_template('./settings-feed.html', name = name, feed = feed, feeds = g.feeds, agents = g.agents, filters = g.filters)
         return render_template('./settings.html', feeds = g.feeds)
+
+@app.route('/filters')
+@app.route('/filters/<string:action>', methods = ['GET', 'POST'])
+@app.route('/filters/<string:action>/<string:uid>', methods = ['GET', 'POST'])
+def filters(action = None, uid = None):
+
+    db = g.db
+
+    if action == 'new':
+        if request.method == 'POST':
+            f = {'_id' : request.form['id'], 'name' : request.form['name'], 'description' : request.form['description'], 'blocks' : []}
+            for key in filter(lambda key: key.startswith('block-'), request.form.keys()):
+                block, i, j = key.split('-')
+                i, j = int(i), int(j)
+                value = request.form[key]
+                if len(f['blocks']) > i:
+                    f['blocks'][i].append(value)
+                else:
+                    f['blocks'].append([value])
+            db.filters.insert_one(f)
+            return redirect(url_for('filters'))
+        else:
+            uid = int(time())
+            return render_template('./filters/filter-new.html', agents = g.agents, feeds = g.feeds, uid = uid)
+    elif action == 'edit':
+        if request.method == 'POST':
+            f = {'id' : request.form['id'], 'name' : request.form['name'], 'description' : request.form['description']}
+            #@TODO: Here is some code missing to take changes to blocks into account
+            x = db.filters.find_one({'_id' : request.form['id']})
+            x.update(f)
+            db.filters.replace_one({'_id' : request.form['id']}, x)
+        else:
+            f = db.filters.find_one({'_id' : uid})
+            return render_template('./filters/filter-edit.html', f = f, feeds = g.feeds)
+        return redirect(url_for('filters'))
+    elif action == 'delete':
+        db.filters.delete_one({'_id' : uid})
+        return redirect(url_for('filters'))
+    return render_template('./filters/filters.html', filters = g.filters, feeds = g.feeds)
 
 @app.route('/read/<string:uid>')
 def read(uid):
