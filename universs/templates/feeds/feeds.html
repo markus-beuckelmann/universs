@@ -23,7 +23,7 @@
 
           <ul class="list-group">
             {% for feed in feeds|sort(attribute = "title") %}
-              <a id="feed-{{ loop.index }}" class="list-group-item {% if feed["title"] == name %} active{% else %}list-group-item-action{% endif %}" href="{{ prepend }}/feeds/show/{{ feed["title"] }}#feed-{{ loop.index }}"><span class="text-muted small numbering">#{{ loop.index }}</span> <strong>{{ feed["title"] }}</strong>{% if feed["filters"]|length > 0 %} <span class="glyphicon glyphicon-hourglass" aria-hidden="true"></span>{% endif %}{% if feed["unread-articles"] %}<span class="badge badge-default unread-badge">{{ feed["unread-articles"] }}</span>{% endif %}</a>
+              <a id="feed-{{ loop.index }}" class="list-group-item {% if feed["title"] == name %} active{% else %}list-group-item-action{% endif %}" href="{{ prepend }}/feeds/show/{{ feed["title"]|urlencode }}#feed-{{ loop.index }}"><span class="text-muted small numbering">#{{ loop.index }}</span> <strong>{{ feed["title"] }}</strong>{% if feed["filters"]|length > 0 %} <span class="glyphicon glyphicon-hourglass" aria-hidden="true"></span>{% endif %}{% if feed["unread-articles"] %}<span class="badge badge-default unread-badge">{{ feed["unread-articles"] }}</span>{% endif %}</a>
             {% endfor %}
           </ul>
 {% endblock %}

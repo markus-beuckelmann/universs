@@ -58,7 +58,7 @@ def tasks(action, title = None, identifier = None):
 @app.route('/')
 @app.route('/feeds')
 @app.route('/feeds/<string:action>', methods = ['GET', 'POST'])
-@app.route('/feeds/<string:action>/<string:title>', methods = ['GET', 'POST'])
+@app.route('/feeds/<string:action>/<path:title>', methods = ['GET', 'POST'])
 def feeds(action = None, title = None):
 
     db = g.db
