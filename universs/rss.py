@@ -22,6 +22,9 @@ def _parse(content, verbose = False):
 
     articles = []
     for i, entry in enumerate(feed['entries']):
+        if 'title' not in entry:
+            # If we don't even get the article's title, skip it
+            continue
         data = {'title' : entry['title'], 'feed-name' : title, 'feed-url' : url}
         data['id'] = '%s – %s' % (title, entry['title'])
         if verbose:
@@ -43,7 +46,7 @@ def _post_process(articles, title = '', verbose = False):
             if article['content'][0]['language']:
                 article['language'] = article['content'][0]['language']
             article['content'] = article['content'][0]['value']
-        elif article['summary']:
+        elif 'summary' in article:
             article['content'] = article['summary']
             del article['summary']
         else:
@@ -53,7 +56,10 @@ def _post_process(articles, title = '', verbose = False):
             article['author'] = article['authors'][0]['name']
 
         if 'published_parsed' in article:
-            article['date'] = datetime(*article['published_parsed'][:6])
+            try:
+                article['date'] = datetime(*article['published_parsed'][:6])
+            except TypeError:
+                article['date'] = datetime.utcnow()
         elif 'date_parsed' in article:
             article['date'] = datetime(*article['date_parsed'][:6])
         else:
@@ -71,7 +77,7 @@ def _post_process(articles, title = '', verbose = False):
             if key not in article:
                 article[key] = ''
         # Make sure the following keys don't exist
-        for key in ('authors', 'published_parsed', 'date_parsed'):
+        for key in ('authors', 'published', 'published_parsed', 'date_parsed', 'subtitle'):
             if key in article:
                 del article[key]
 
