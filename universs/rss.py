@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 import feedparser
+import pytz
 
 from socket import timeout as TimeoutError
 from urllib.request import urlopen, Request
@@ -71,6 +72,13 @@ def _post_process(articles, title = '', verbose = False):
         for key in ('authors', 'published_parsed', 'date_parsed'):
             if key in article:
                 del article[key]
+
+        # Make article["date"] timezone aware
+        try:
+            article['date'] = pytz.utc.localize(article['date'])
+        except ValueError:
+            # MongoClient most likely has tz_aware=True option
+            pass
 
         # Update the feed title if a custom name was specified
         if title:
