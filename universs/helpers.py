@@ -3,6 +3,16 @@
 
 import xml.etree.ElementTree as etree
 
+from urllib.request import urlopen
+from urllib.error import URLError
+
+def httpcheck(url = 'http://google.com', timeout = 3):
+    try:
+        urlopen(url)
+        return True
+    except URLError:
+        return False
+
 def read_opml(filename):
     ''' Returns RSS feed title and URL from OPML export file.'''
 
