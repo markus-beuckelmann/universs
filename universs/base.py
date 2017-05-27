@@ -9,7 +9,7 @@ from helpers import read_opml
 def init(server = 'localhost'):
     ''' Establishes a connection to the database backend and returns a handle for the database. '''
 
-    client = MongoClient(server)
+    client = MongoClient(server, tz_aware = True)
     db = client.filtr
     collections = db.collection_names()
 
