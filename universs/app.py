@@ -65,7 +65,7 @@ def feeds(action = None, title = None):
 
     if request.method == 'POST':
         if action == 'new':
-            feed = {'_id' : str(uuid()), 'title' : request.form['title'], 'url' : request.form['url'], 'description' : request.form['description'], 'whitelist' : [], 'blacklist' : []}
+            feed = {'_id' : str(uuid()), 'title' : request.form['title'], 'url' : request.form['url'], 'description' : request.form['description'], 'whitelist' : [], 'blacklist' : [], 'active' : True}
             feed['tags'] = list(filter(bool, map(lambda tag: tag.strip(), request.form['tags'].split(','))))
 
             # Push new feed to the database
@@ -86,6 +86,20 @@ def feeds(action = None, title = None):
                 db.articles.delete_many({'feed-id' : feed['_id']})
                 # Delete the feed
                 db.feeds.delete_one({'_id' : feed['_id']})
+            return redirect(url_for('feeds'))
+        elif action == 'deactivate':
+            if title:
+                feed = db.feeds.find_one({'title' : title})
+                if feed and feed['active']:
+                    feed['active'] = False
+                    db.feeds.replace_one({'_id' : feed['_id']}, feed)
+            return redirect(url_for('feeds'))
+        elif action == 'activate':
+            if title:
+                feed = db.feeds.find_one({'title' : title})
+                if feed and not feed['active']:
+                    feed['active'] = True
+                    db.feeds.replace_one({'_id' : feed['_id']}, feed)
             return redirect(url_for('feeds'))
         else:
 
@@ -322,6 +336,7 @@ def statistics():
 
     stats = {}
     stats['number-of-feeds'] = db.feeds.count()
+    stats['number-of-inactive-feeds'] = db.feeds.find({'active' : False}).count()
     stats['number-of-articles'] = db.articles.count()
     stats['number-of-tags'] = db.tags.count()
     stats['number-of-agents'] = db.agents.count()
