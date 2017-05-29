@@ -37,9 +37,9 @@
                   <label for="feed-description">Beschreibung</label>
                   <textarea id="feed-description" name="description" class="form-control" rows="3" >{{ feed["description"] }}</textarea>
                 </div>
-              <p class="text-muted">{{ feed["visible-articles"] }} Artikel{% if feed["last-update"] %} • Letzte Aktualisierung: {{ feed["last-update"]|dt }}{% endif %}</p>
+              <p class="text-muted">{% if feed["active"]%}Aktiviert{% else %}Deaktiviert{% endif %} • {{ feed["visible-articles"] }} Artikel{% if feed["last-update"] %} • Letzte Aktualisierung: {{ feed["last-update"]|dt }}{% endif %}</p>
               </fieldset>
-              <fieldset class="form-group" id="agents">
+              <fieldset class="form-group" id="agents" disabled>
                 <legend>Aktive Agenten</legend>
                 <div class="well">
                   {% if feed["filters"]|length > 0 %}
@@ -85,7 +85,7 @@
                   {% endif %}
                 </div>
               </fieldset>
-              <fieldset class="form-group" id="filters">
+              <fieldset class="form-group" id="filters" disabled>
                 <legend>Aktive Filter</legend>
                 <div class="well">
                   {% if feed["pipelines"]|length > 0 %}
@@ -131,7 +131,12 @@
                   {% endif %}
                 </div>
               </fieldset>
-              <button type="button" class="btn btn-success" onclick="numerate(); $('form').submit()">Speichern</button>
+              <button type="button" class="btn btn-success" onclick="$('form').submit()">Speichern</button>
+              {% if feed["active"] %}
+                <a type="button" class="btn btn-warning" href="/feeds/deactivate/{{ feed["title"] }}">Deaktivieren</a>
+              {% else %}
+                <a type="button" class="btn btn-warning" href="/feeds/activate/{{ feed["title"] }}">Aktivieren</a>
+              {% endif %}
               <a type="button" class="btn btn-primary" href="/feed/{{ feed["title"] }}">Anzeigen</a>
               <a type="button" class="btn btn-danger" href="/feeds/delete/{{ feed["title"] }}">Löschen</a>
           </div>
