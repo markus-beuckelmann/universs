@@ -1,17 +1,7 @@
 {% extends "base.html" %}
 
-{% block javascript %}
-
-    <script type="text/javascript">
-    $(document).ready(function() {
-      normalize();
-    })
-
-    function normalize() {
-      $('div#feed-articles img').removeProp('align');
-    }
-    </script>
-
+{% block javascript_extra %}
+    <script src="/static/js/universs.articles.js"></script>
 {% endblock %}
 
 {% block sidebar %}
