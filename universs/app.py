@@ -22,7 +22,7 @@ app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379'
 
 celery = Celery(app.import_name, backend = app.config['CELERY_RESULT_BACKEND'], broker = app.config['CELERY_BROKER_URL'])
 
-PER_PAGE = 100
+LIMIT_PER_PAGE = 100
 TIMEZONE = 'Europe/Berlin'
 TIMEFORMAT = '%d.%m.%Y, %H:%M:%S Uhr (%Z)'
 
@@ -105,7 +105,8 @@ def feeds(action = None, title = None):
 
             # Pagination
             page = request.args.get('page', 1)
-            offset = max(0, (int(page) - 1) * PER_PAGE)
+            limit = int(request.args.get('limit', LIMIT_PER_PAGE))
+            offset = max(0, (int(page) - 1) * limit)
 
             if title:
 
@@ -135,7 +136,8 @@ def tags(title = None):
 
     # Pagination
     page = request.args.get('page', 1)
-    offset = max(0, (int(page) - 1) * PER_PAGE)
+    limit = int(request.args.get('limit', LIMIT_PER_PAGE))
+    offset = max(0, (int(page) - 1) * limit)
 
     if title:
         tag = db.tags.find_one({'title' : title})
@@ -144,8 +146,9 @@ def tags(title = None):
             articles, N = list(cursor), cursor.count()
         else:
             articles, N = (0, 0)
-        pages = ((N // PER_PAGE) + bool(N % PER_PAGE), N)
-        return render_template('./tags.html', name = title, tag = tag, tags = g.tags, articles = articles, pages = pages)
+
+        pages = ((N // limit) + bool(N % limit), N)
+        return render_template('tags/tags.html', name = title, tag = tag, tags = g.tags, articles = articles, pages = pages, now = timezone(TIMEZONE).localize(datetime.now()))
     else:
         return render_template('./tags.html', name = title, tags = g.tags, articles = [])
 
