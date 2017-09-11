@@ -1,24 +1,42 @@
             {% if pages and pages[0] > 1 %}
+
+            {# Total number of pages #}
+            {% set total_pages = pages[0] %}
+
+            {# Build query string #}
+            {% set qs = [] %}
+            {% for key, value in request.args.items() %}
+              {% if key != "page" %}
+                {% if value %}{% set _ = qs.append(key + "=" + value) %}{% else %}{% set _ = qs.append(key) %}{% endif %}
+              {% endif %}
+            {% endfor %}
+            {% if qs|length %}{% set qs = "&" + qs|join("&") %}{% else %}{% set qs = "" %}{% endif %}
+
             <nav aria-label="Pagination">
               <ul class="pagination pagination-sm">
                 {% if request.args.get("page")|int > 1 %}
                 <li class="page-item">
-                  <a class="page-link" href="?page={{ request.args.get("page")|int - 1 }}" aria-label="Previous">
+                  <a class="page-link" href="?page={{ request.args.get("page")|int - 1 }}{{ qs }}" aria-label="Previous">
                     <span aria-hidden="true">&laquo;</span>
                     <span class="sr-only">Previous</span>
                   </a>
                 </li>
                 {% endif %}
-                {% for i in range(pages[0]) %}
-                {% if loop.index == request.args.get("page")|int or (not request.args.get("page") and loop.index == 1) %}
-                <li class="page-item active"><a class="page-link" href="?page={{ loop.index }}">{{ loop.index }}</a></li>
+
+                {% if request.args.get("page")|int - 10 > 1 %}{% set a = request.args.get("page")|int - 10 %}{% else %}{% set a = 1 %}{% endif %}
+                {% if request.args.get("page")|int + 11 < total_pages %}{% set b = request.args.get("page")|int + 11 %}{% else %}{% set b = total_pages + 1 %}{% endif %}
+
+                {% for i in range(a, b) %}
+
+                {% if i == request.args.get("page")|int or (not request.args.get("page") and i == 1) %}
+                <li class="page-item active"><a class="page-link" href="?page={{ i }}{{ qs }}">{{ i }}</a></li>
                 {% else %}
-                <li class="page-item"><a class="page-link" href="?page={{ loop.index }}">{{ loop.index }}</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ i }}{{ qs }}">{{ i }}</a></li>
                 {% endif %}
                 {% endfor %}
-                {% if request.args.get("page")|int < pages[0] %}
+                {% if request.args.get("page")|int < total_pages %}
                 <li class="page-item">
-                  <a class="page-link" href="?page={{ request.args.get("page")|int or 1 + 1 }}" aria-label="Next">
+                  <a class="page-link" href="?page={{ request.args.get("page", 2)|int }}{{ qs }}" aria-label="Next">
                     <span aria-hidden="true">&raquo;</span>
                     <span class="sr-only">Next</span>
                   </a>
