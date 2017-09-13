@@ -1,7 +1,53 @@
             <div id="feed-articles">
             {% if articles and articles|length > 0 %}
             <ul>
+
+            {# Set variables for 1h, 24h, 3d, 7d, 14d, 1m, 3m, 1y stripes #}
+            {% set stripes = {} %}
+            {% set _ = stripes.update({'1h' : True}) %}
+            {% set _ = stripes.update({'24h' : True}) %}
+            {% set _ = stripes.update({'3d' : True}) %}
+            {% set _ = stripes.update({'7d' : True}) %}
+            {% set _ = stripes.update({'14d' : True}) %}
+            {% set _ = stripes.update({'3m' : True}) %}
+            {% set _ = stripes.update({'1m' : True}) %}
+            {% set _ = stripes.update({'1y' : True}) %}
+
             {% for article in articles|sort(attribute = "date", reverse = True) %}
+
+            {# Stripes... #}
+            {% if stripes["1h"] and (now - article["date"]).total_seconds() >= 3600 %}
+              {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">1 Stunde</span></div>{% endif %}
+              {% set _ = stripes.update({'1h' : False}) %}
+            {% endif %}
+            {% if stripes["24h"] and (now - article["date"]).total_seconds() >= (24*3600) %}
+              {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">24 Stunden</span></div>{% endif %}
+              {% set _ = stripes.update({'24h' : False}) %}
+            {% endif %}
+            {% if stripes["3d"] and (now - article["date"]).total_seconds() >= (3*24*3600) %}
+              {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">3 Tage</span></div>{% endif %}
+              {% set _ = stripes.update({'3d' : False}) %}
+            {% endif %}
+            {% if stripes["7d"] and (now - article["date"]).total_seconds() >= (7*24*3600) %}
+              {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">1 Woche</span></div>{% endif %}
+              {% set _ = stripes.update({'7d' : False}) %}
+            {% endif %}
+            {% if stripes["14d"] and (now - article["date"]).total_seconds() >= (14*24*3600) %}
+              {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">14 Tage</span></div>{% endif %}
+              {% set _ = stripes.update({'14d' : False}) %}
+            {% endif %}
+            {% if stripes["1m"] and (now - article["date"]).total_seconds() >= (30*24*3600) %}
+              {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">1 Monat</span></div>{% endif %}
+              {% set _ = stripes.update({'1m' : False}) %}
+            {% endif %}
+            {% if stripes["3m"] and (now - article["date"]).total_seconds() >= (3*30*24*3600) %}
+              {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">3 Monate</span></div>{% endif %}
+              {% set _ = stripes.update({'3m' : False}) %}
+            {% endif %}
+            {% if stripes["1y"] and (now - article["date"]).total_seconds() >= (365*24*3600) %}
+              {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">1 Jahr</span></div>{% endif %}
+              {% set _ = stripes.update({'1y' : False}) %}
+            {% endif %}
 
             <li><span class="text-muted small numbering">#{{ loop.index }}</span> {% if special or not hide_feed_name %}<a class="feed-link" href="/feeds/show/{{ article["feed-name"]|urlencode }}">{{ article["feed-name"] }}</a>: {% endif %}<a href="#{{ article["_id"] }}" data-toggle="collapse" class="article-{% if article["read"] %}read{% else %}unread{% endif %} article-{% if article["marked"] %}marked{% else %}unmarked{% endif %} article-{% if article["starred"] %}starred{% else %}unstarred{% endif %}">{{ article["title"] }}</a>{% if article["starred"] %} <span class="small text-muted"> • <small><span class="glyphicon glyphicon-star" aria-hidden="true"></span></small></span>{% endif %} {% if article["marked"] %} <span class="small text-muted"> • <small><span class="glyphicon glyphicon-bookmark" aria-hidden="true"></span></small></span>{% endif %} <span class="small text-muted">• {{ article["date"]|dt }}</span></li>
             <div id="article-{{ loop.index }}" class="collapse">

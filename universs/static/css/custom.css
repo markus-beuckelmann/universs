@@ -70,3 +70,34 @@ ol.breadcrumb {
 span.unread-badge {
     opacity: 0.5;
 }
+
+.stripe {
+    display: block;
+    text-align: center;
+    overflow: hidden;
+}
+
+.stripe > span {
+    position: relative;
+    display: inline-block;
+}
+
+.stripe > span:before,
+.stripe > span:after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 9999px;
+    height: 1px;
+    background: #eeeeee;
+}
+
+.stripe > span:before {
+    right: 100%;
+    margin-right: 0.75em;
+}
+
+.stripe > span:after {
+    left: 100%;
+    margin-left: 0.75em;
+}
