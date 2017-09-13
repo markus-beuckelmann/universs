@@ -50,7 +50,9 @@
             {% endif %}
 
             <li><span class="text-muted small numbering">#{{ loop.index }}</span> {% if special or not hide_feed_name %}<a class="feed-link" href="/feeds/show/{{ article["feed-name"]|urlencode }}">{{ article["feed-name"] }}</a>: {% endif %}<a href="#{{ article["_id"] }}" data-toggle="collapse" class="article-{% if article["read"] %}read{% else %}unread{% endif %} article-{% if article["marked"] %}marked{% else %}unmarked{% endif %} article-{% if article["starred"] %}starred{% else %}unstarred{% endif %}">{{ article["title"] }}</a>{% if article["starred"] %} <span class="small text-muted"> • <small><span class="glyphicon glyphicon-star" aria-hidden="true"></span></small></span>{% endif %} {% if article["marked"] %} <span class="small text-muted"> • <small><span class="glyphicon glyphicon-bookmark" aria-hidden="true"></span></small></span>{% endif %} <span class="small text-muted">• {{ article["date"]|dt }}</span></li>
-            <div id="article-{{ loop.index }}" class="collapse">
+            <div id="{{ article["_id"] }}" class="collapse">
+
+
               <ol class="breadcrumb">
                 <li class="breadcrumb-item"><strong>Autor</strong>: {{ article["author"] or 'Unbekannt' }}</li>
                 <li class="breadcrumb-item"><strong>Veröffentlicht</strong>: {% if article["date"] %}{{ article["date"]|dt }}{% else %}Unbekannt{% endif %}</li>
