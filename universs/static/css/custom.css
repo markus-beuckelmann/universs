@@ -21,8 +21,21 @@ img#broadcast-icon {
     margin-left: 0em;
 }
 
+a:focus {
+    outline: none;
+    text-decoration: underline;
+}
+
 a:hover {
     text-decoration: none;
+}
+
+a.feed-link {
+    color: #333333;
+}
+
+a.feed-link:hover {
+    color: black;
 }
 
 span.numbering {
@@ -31,11 +44,21 @@ span.numbering {
 }
 
 a.article-read {
-    opacity: 0.33;
+    opacity: 0.5;
 }
 
 a.article-marked {
+    opacity: 0.9;
     font-weight: bold;
+}
+
+button#mark-as-read {
+    float: right;
+}
+
+div#feed-information {
+    /* margin-top: 0; */
+    /* padding-left: 0; */
 }
 
 div.article-content {
@@ -52,14 +75,14 @@ div#feed-articles {
 }
 
 div#feed-articles img {
-    max-width: 100%;
+    max-width: 40%;
     padding: 1em;
     padding-left: 0em;
     height: auto;
 }
 
 ol.breadcrumb {
-    font-size: .9em;
+    font-size: .85em;
     height: 2.2em;
     margin: .3em 0em 1em 0em;
     padding: .2em .7em;
@@ -69,6 +92,15 @@ ol.breadcrumb {
 
 span.unread-badge {
     opacity: 0.5;
+}
+
+blockquote {
+    font-size: 1em;
+}
+
+div#sidebar .list-group-item {
+    padding: 0.5em 0.75em 0.5em 0.75em;
+    font-size: 0.925em;
 }
 
 .stripe {
