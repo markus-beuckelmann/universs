@@ -56,11 +56,15 @@
               <!--
               <ol class="breadcrumb">
                 <li class="breadcrumb-item"><strong>Autor</strong>: {{ article["author"] or 'Unbekannt' }}</li>
-                <li class="breadcrumb-item"><strong>Veröffentlicht</strong>: {% if article["date"] %}{{ article["date"]|dt }}{% else %}Unbekannt{% endif %}</li>
-                <li class="breadcrumb-item"><strong>Sprache</strong>: {{ article["language"] or 'Unbekannt' }}</li>
-                <li class="breadcrumb-item"><a href="{{ article["link"] }}">Original</a></li>
-                <li class="breadcrumb-item pull-right"><button type="button" class="btn btn-warning btn-xs" onclick="$.get('/marked/{{ article["_id"] }}')">{% if article["marked"] %}Demarkieren{% else %}Markieren{% endif %}</button></li>
-                <li class="breadcrumb-item pull-right"><button type="button" class="btn btn-success btn-xs" onclick="$.get('/read/{{ article["_id"] }}')">{% if article["read"] %}Ungelesen{% else %}Gelesen{% endif %}</button></li>
+                <li class="breadcrumb-item"><span class="glyphicon glyphicon-time" aria-hidden="true"></span> <strong>Veröffentlicht</strong>: {% if article["date"] %}{{ article["date"]|dt }}{% else %}Unbekannt{% endif %}</li>
+                <li class="breadcrumb-item"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span> <strong>Sprache</strong>: {{ article["language"] or 'Unbekannt' }}</li>
+                <li class="breadcrumb-item"><span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span> <a href="{{ article["link"] }}">Original</a></li>
+                <li id="{{ article["_id"] }}-unstarred-button" class="breadcrumb-item pull-right"{% if not article["starred"] %} style="display: none;"{% endif %}><button type="button" class="btn btn-primary btn-xs" onclick="unstar('{{ article["_id"] }}')" title="Unfavorisieren"><span class="glyphicon glyphicon-star-empty" aria-hidden="true"></span></button></li>
+                <li id="{{ article["_id"] }}-starred-button" class="breadcrumb-item pull-right"{% if article["starred"] %} style="display: none;"{% endif %}><button type="button" class="btn btn-primary btn-xs" onclick="star('{{ article["_id"] }}')" title="Favorisieren"><span class="glyphicon glyphicon-star" aria-hidden="true"></button></li>
+                <li id="{{ article["_id"] }}-unmark-button" class="breadcrumb-item pull-right"{% if not article["marked"] %} style="display: none;"{% endif %}><button type="button" class="btn btn-warning btn-xs" onclick="unmark('{{ article["_id"] }}')" title="Demarkieren"><span class="glyphicon glyphicon-erase" aria-hidden="true"></span></button></li>
+                <li id="{{ article["_id"] }}-mark-button" class="breadcrumb-item pull-right"{% if article["marked"] %} style="display: none;"{% endif %}><button type="button" class="btn btn-warning btn-xs" onclick="mark('{{ article["_id"] }}')" title="Markieren"><span class="glyphicon glyphicon-bookmark" aria-hidden="true"></span></button></li>
+                <li id="{{ article["_id"] }}-unread-button" class="breadcrumb-item pull-right"{% if not article["read"] %} style="display: none;"{% endif %}><button type="button" class="btn btn-success btn-xs" onclick="unread('{{ article["_id"] }}')" title="Ungelesen"><span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span></button></li>
+                <li id="{{ article["_id"] }}-read-button" class="breadcrumb-item pull-right"{% if article["read"] %} style="display: none;"{% endif %}><button type="button" class="btn btn-success btn-xs" onclick="read('{{ article["_id"] }}')" title="Gelesen"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></button></li>
               </ol>
               <div class="article-content well well-sm">
                 {# We need to take care of nested comments...  #}
