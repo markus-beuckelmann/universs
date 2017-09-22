@@ -1,0 +1,71 @@
+              {% set query = request.args.keys()|list %}
+
+              <div class="col-md-2" id="sidebar">
+                  <h5>Filter</h5>
+                  <ul class="list-group">
+
+                    {% if "marked" in query %}{% set qs = "&marked" %}
+                    {% elif "unmarked" in query %}{% set qs = "&unmarked" %}
+                    {% elif "starred" in query %}{% set qs = "&starred" %}
+                    {% elif "unstarred" in query %}{% set qs = "&unstarred" %}
+                    {% endif %}
+
+                    <li class="list-group-item">
+                      <span class="glyphicon glyphicon-asterisk" aria-hidden="true"></span> <a href="{{ request.path }}?all{{ qs }}">Alle Artikel</a>
+                      {% if "all" in query%}<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>{% endif %}
+                    </li>
+                    <li class="list-group-item">
+                      <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> <a href="{{ request.path }}?read{{ qs }}">Gelesene</a>
+                      {% if "read" in query %}<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>{% endif %}
+                    </li>
+                    <li class="list-group-item">
+                      <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span> <a href="{{ request.path }}?unread{{ qs }}">Ungelesene</a>
+                      {% if "unread" in query or ("all" not in query and not "read" in query) %}<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>{% endif %}
+                    </li>
+
+                    {% if "all" in query %}{% set qs = "&all" %}
+                    {% elif "read" in query %}{% set qs = "&read" %}
+                    {% elif "unread" in query %}{% set qs = "&unread" %}
+                    {% elif "starred" in query %}{% set qs = "&starred" %}
+                    {% elif "unstarred" in query %}{% set qs = "&unstarred" %}
+                    {% endif %}
+
+                    <li class="list-group-item">
+                      <span class="glyphicon glyphicon-bookmark" aria-hidden="true"></span> <a href="{{ request.path }}?marked{{ qs }}">Markierte</a>
+                      {% if "marked" in query %}<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>{% endif %}
+                    </li>
+                    <li class="list-group-item">
+                      <span class="glyphicon glyphicon-erase" aria-hidden="true"></span> <a href="{{ request.path }}?unmarked{{ qs }}">Unmarkierte</a>
+                      {% if "unmarked" in query %}<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>{% endif %}
+                    </li>
+
+                    {% if "all" in query %}{% set qs = "&all" %}
+                    {% elif "read" in query %}{% set qs = "&read" %}
+                    {% elif "unread" in query %}{% set qs = "&unread" %}
+                    {% elif "marked" in query %}{% set qs = "&marked" %}
+                    {% elif "unmarked" in query %}{% set qs = "&unmarked" %}
+                    {% endif %}
+                    
+                    <li class="list-group-item">
+                      <span class="glyphicon glyphicon-star" aria-hidden="true"></span> <a href="{{ request.path }}?starred{{ qs }}">Favorisierte</a>
+                      {% if "starred" in query %}<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>{% endif %}
+                    </li>
+                    <li class="list-group-item">
+                      <span class="glyphicon glyphicon-star-empty" aria-hidden="true"></span> <a href="{{ request.path }}?unstarred{{ qs }}">Unfavorisierte</a>
+                      {% if "unstarred" in query %}<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>{% endif %}
+                    </li>
+                  </ul>
+                  <h5>Aktionen</h5>
+                  <ul class="list-group">
+                      {% if feed %}<li class="list-group-item"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> <a href="#" onclick="$.get('/tasks/update/id/{{ feed["_id"] }}'); return false;">Aktualisieren</a></li>{% endif %}
+                      <li class="list-group-item"><span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span> <a href="#" onclick="markAllAsRead(); return false;">Alle Gelesen</a></li>
+                      <li class="list-group-item"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> <a target="_blank" href="/feeds/new">Neuer Feed</a></li>
+                  </ul>
+                  {% if feed %}
+                  <h5>Weiteres</h5>
+                  <ul class="list-group">
+                      {% if feed %}<li class="list-group-item"><span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span> <a target="_blank" href="{{ feed["url"] }}">RSS</a></li>{% endif %}
+                      {% if feed %}<li class="list-group-item"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> <a href="/settings/feed/{{ feed["title"] }}">Feed-Einstellungen</a></li>{% endif %}
+                  </ul>
+                  {% endif %}
+              </div>
