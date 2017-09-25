@@ -4,6 +4,7 @@
 from app import celery
 from base import init as dbinit
 from rss import pull
+from helpers import httpcheck
 
 from pymongo.errors import DuplicateKeyError
 
@@ -42,6 +43,11 @@ def download(*args, **kwargs):
     ''' Pulls RSS articles from one feed and pushes new articles to database. '''
 
     db = dbinit()
+
+    # Test internet connectivity
+    if not httpcheck():
+        print('No internet connectivity. Aborting.')
+        return False
 
     feeds = []
     if 'title' in kwargs:
