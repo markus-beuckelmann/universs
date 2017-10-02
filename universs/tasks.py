@@ -6,7 +6,7 @@ from base import init as dbinit
 from rss import pull
 from helpers import httpcheck
 
-from pymongo.errors import DuplicateKeyError
+from pymongo.errors import DuplicateKeyError, BulkWriteError
 
 from datetime import datetime
 from hashlib import md5
@@ -71,21 +71,49 @@ def download(*args, **kwargs):
         if articles:
             db.downloads.insert_many(articles)
 
-        downloads += len(articles)
+@celery.task(name = 'universs.download')
+def download(feeds, *args, **kwargs):
+    ''' Pulls RSS articles from one feed and pushes new articles to database. '''
 
-    return downloads
+    db = dbinit()
 
-def _process(article):
+    # Use 120 threads, hide joblib output and set a 3s timeout for urlopen()
+    jobs, verbose, timeout = 120, 0, 3
 
-    # Rename the identifier key for the database to the MD5 hash of "<feed> - <title>"
-    article['_id'] = md5(article['id'].encode('utf-8')).hexdigest()
+    # Note: If you are using Celery for asynchronous tasks, you have to use the 'threading' backend instead of 'multiprocessing'
+    articles = pull(feeds, jobs, timeout = timeout, verbose = verbose, backend = 'threading')
+    queue = []
 
-    # Insert some important flags
-    article['show'] = True
-    article['read'] = False
-    article['marked'] = False
+    for article in articles:
+        # Now check if the article is already in db.articles (i.e. is an already processed, old article)
+        uid = '%s - %s' % (article['feed-id'], article['title'])
+        uid = md5(uid.encode('utf-8')).hexdigest()
 
-    return article
+        # Note that .find(...).limit(1).count() is for some reason faster than .find_one()
+        if db.articles.find({'_id' : uid}).limit(1).count():
+            continue
+        else:
+            # Assign the correct ID
+            article['_id'] = uid
+
+            # If it's not in db.downloads, we'll add it to the queue
+            if not db.downloads.find({'_id' : uid}).limit(1).count():
+                queue.append(article)
+
+    if queue:
+        # Put all articles in a "downloads" collection. They will be processed later on...
+        if len(queue) > 1:
+            try:
+                db.downloads.insert_many(queue, ordered = False)
+            except BulkWriteError:
+                pass
+        else:
+            db.downloads.insert_one(queue[0])
+
+    # Print a status message
+    print('%d downloaded, %d queued articles.' % (len(articles), len(queue)))
+
+    return len(articles)
 
 @celery.task(name = 'universs.process')
 def process(*args, **kwargs):
