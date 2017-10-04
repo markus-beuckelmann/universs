@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+import numpy as np
+import pytz
+
 from app import celery
 from base import init as dbinit
 from rss import pull
@@ -10,6 +13,7 @@ from pymongo.errors import DuplicateKeyError, BulkWriteError
 
 from datetime import datetime
 from hashlib import md5
+from collections import Counter
 
 # By default automatically perform a full update every hour
 celery.conf.beat_schedule = {
@@ -32,18 +36,21 @@ def batch(db, *args, **kwargs):
     cursor = db.feeds.aggregate([{'$match' : {'active' : True}}, {'$sample' : {'size' : k}}])
     return [(feed['title'], feed['url'], feed['_id']) for feed in cursor]
 
-    print('%d RSS articles are waiting to be processed.' % (db.downloads.count(),))
-    N = process()
-    print('Updating metadata.')
-    update_feed_metadata(*args, **kwargs)
-    update_tag_metadata()
+def roulette(db, *args, **kwargs):
+    ''' Returns a random feed sample following the roulette wheel selection scheme. '''
 
-    # Return the number of new articles
-    return N
+    # Define a scoring function
+    scoring = lambda feed: np.log10(max(feed['total-articles'], 10))
+    feeds = list(db.feeds.find({'active' : True}))
+    G = sum(map(scoring, feeds))
+    # Map to probabilities (i.e normalization)
+    probabilities = lambda feed: scoring(feed) / G
 
-@celery.task(name = 'universs.download')
-def download(*args, **kwargs):
-    ''' Pulls RSS articles from one feed and pushes new articles to database. '''
+    # Choose a batch size (size of the sample)
+    k = 50
+    sample = np.random.choice(feeds, size = k, p = list(map(probabilities, feeds)))
+    return [(feed['title'], feed['url'], feed['_id']) for feed in sample]
+
 
     db = dbinit()
 
