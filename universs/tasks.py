@@ -20,14 +20,17 @@ celery.conf.beat_schedule = {
 }
 celery.conf.timezone = 'UTC'
 
-@celery.task(name = 'universs.update')
-def update(*args, **kwargs):
-    ''' Pulls RSS articles from feeds and pushes new articles to database. '''
+def bulk(db, *args, **kwargs):
+    ''' Returns all active feeds in the database. '''
+    return [(feed['title'], feed['url'], feed['_id']) for feed in db.feeds.find({'active' : True})]
 
-    db = dbinit()
+def batch(db, *args, **kwargs):
+    ''' Returns a random feed sample of active feeds in the database. '''
 
-    # This will automatically either download one specified feed or all feeds listed in the database
-    download(*args, **kwargs)
+    # Choose a batch size (size of the sample)
+    k = 50
+    cursor = db.feeds.aggregate([{'$match' : {'active' : True}}, {'$sample' : {'size' : k}}])
+    return [(feed['title'], feed['url'], feed['_id']) for feed in cursor]
 
     print('%d RSS articles are waiting to be processed.' % (db.downloads.count(),))
     N = process()
