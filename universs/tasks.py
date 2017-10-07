@@ -132,28 +132,34 @@ def process(*args, **kwargs):
     # This will process all documents in the "downloads" collection, process and push new articles to the "articles" collection and delete the document from "downloads".
 
     db = dbinit()
-
-    now = datetime.utcnow()
+    now = pytz.utc.localize(datetime.utcnow())
 
     processed, pushed = 0, 0
     for article in db.downloads.find():
-        identifier = article['_id']
-        article = _process(article)
+
+        # First of all, assert that the article's ID is correct, i.e. the MD5 hash of "<feed-id> - <title>"
+        uid = md5(('%s - %s' % (article['feed-id'], article['title'])).encode('utf-8')).hexdigest()
+        #assert article['_id'] == uid
+
+        # Insert some important flags
+        article['show'] = True
+        article['read'] = False
+        article['marked'] = False
+        article['starred'] = False
 
         # We do not accept publishing dates in the future
         if article['date'] > now:
             article['date'] = now
 
-        # Update some feed specific information
+        # Store the time the article was downloaded
+        article['downloaded'] = now
+
+        # Get some feed specific information from the database
         feed = db.feeds.find_one({'title' : article['feed-name']})
-        feed['last-update'] = datetime.utcnow()
-        article['feed-id'] = feed['_id']
         article['tags'] = feed['tags']
 
-        # Push changes to feed to the database
-        db.feeds.replace_one({'_id' : feed['_id']}, feed)
         # Delete article from downloads collection
-        db.downloads.delete_one({'_id' : identifier})
+        db.downloads.delete_one({'_id' : uid})
 
         try:
             # Push new articles to the collection
@@ -165,7 +171,7 @@ def process(*args, **kwargs):
 
         processed += 1
 
-    print('Processed %d RSS articles and pushed %d new articles to the database' % (processed, pushed))
+    print('%d articles processed, %d new articles pushed to the database' % (processed, pushed))
 
     return pushed
 
