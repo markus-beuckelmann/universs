@@ -132,10 +132,6 @@ def update(*args, **kwargs):
     N = process()
     return N
 
-        # Put all articles in a "downloads" collection. They will be processed later on...
-        if articles:
-            db.downloads.insert_many(articles)
-
 @celery.task(name = 'universs.download')
 def download(feeds, *args, **kwargs):
     ''' Pulls RSS articles from one feed and pushes new articles to database. '''
