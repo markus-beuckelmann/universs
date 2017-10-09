@@ -256,6 +256,8 @@ def update_feed_metadata(*args, **kwargs):
         feed['unread-articles'] = db.articles.find({'feed-id' : feed['_id'], 'show' : True, 'read' : False}).count()
         # Number of marked articles
         feed['marked-articles'] = db.articles.find({'feed-id' : feed['_id'], 'show' : True, 'marked' : True}).count()
+        # Number of starred articles
+        feed['starred-articles'] = db.articles.find({'feed-id' : feed['_id'], 'show' : True, 'starred' : True}).count()
 
         # If any filters are registered, apply them to fill up feed["articles"]
         # if len(feed['filters']) > 0:
@@ -313,6 +315,8 @@ def update_tag_metadata(*args, **kwargs):
         tag['unread-articles'] = db.articles.find({'show' : True, 'read' : False, 'tags' : {'$in' : [tag['title']]}}).count()
         # Number of marked articles
         tag['marked-articles'] = db.articles.find({'show' : True, 'marked' : True, 'tags' : {'$in' : [tag['title']]}}).count()
+        # Number of starred articles
+        tag['starred-articles'] = db.articles.find({'show' : True, 'starred' : True, 'tags' : {'$in' : [tag['title']]}}).count()
 
         # Push the changes to the database
         db.tags.replace_one({'_id' : tag['_id']}, tag)

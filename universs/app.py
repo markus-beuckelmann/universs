@@ -348,6 +348,7 @@ def statistics():
     stats['number-of-filtered-articles'] = stats['number-of-articles'] - stats['number-of-unfiltered-articles']
     stats['number-of-unread-articles'] = db.articles.find({'show' : True, 'read' : False}).count()
     stats['number-of-marked-articles'] = db.articles.find({'show' : True, 'marked' : True}).count()
+    stats['number-of-starred-articles'] = db.articles.find({'show' : True, 'starred' : True}).count()
 
     stats['database-size'] = db.command("dbstats")['dataSize'] / 1024.0**2
     stats['last-update'] = db.feeds.find(sort = [('last-update', -1)], limit = 1)[0]['last-update']
