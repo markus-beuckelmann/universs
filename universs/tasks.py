@@ -293,7 +293,7 @@ def update_tag_metadata(*args, **kwargs):
     elif 'identifier' in kwargs:
         tag = db.tags.find_one({'_id' : kwargs['identifier']})
     else:
-        for tag in db.tag.find():
+        for tag in db.tags.find():
             update_tag_metadata(identifier = tag['_id'])
         return True
 
