@@ -228,12 +228,11 @@ def process(*args, **kwargs):
 
 @celery.task(name = 'universs.update_article_metadata')
 def update_article_metadata(*args, **kwargs):
-
     pass
 
 @celery.task(name = 'universs.update_feed_metadata')
 def update_feed_metadata(*args, **kwargs):
-    ''' Updates feed metadata '''
+    ''' Performs a full update on a feed's metadata. '''
 
     db = dbinit()
 
@@ -284,7 +283,7 @@ def update_feed_metadata(*args, **kwargs):
 
 @celery.task(name = 'universs.update_tag_metadata')
 def update_tag_metadata(*args, **kwargs):
-    ''' Updates tag metadata. '''
+    ''' Performs a full update on a tag's metadata. '''
 
     db = dbinit()
 
