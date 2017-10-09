@@ -51,8 +51,18 @@ def roulette(db, *args, **kwargs):
     sample = np.random.choice(feeds, size = k, p = list(map(probabilities, feeds)))
     return [(feed['title'], feed['url'], feed['_id']) for feed in sample]
 
+@celery.task(name = 'universs.update')
+def update(*args, **kwargs):
+    ''' Pulls RSS articles from feeds and pushes new articles to database and updates metadata. '''
+
+    methods = ('bulk', 'batch', 'roulette')
+    if 'method' not in kwargs or kwargs['method'] not in methods:
+        method = 'bulk'
+    else:
+        method = kwargs['method']
 
     db = dbinit()
+    now = pytz.utc.localize(datetime.utcnow())
 
     # Test internet connectivity
     if not httpcheck():
@@ -63,19 +73,64 @@ def roulette(db, *args, **kwargs):
     if 'title' in kwargs:
         feed = db.feeds.find_one({'title' : kwargs['title']})
         if feed:
-            feeds = [(feed['title'], feed['url'])]
+            feeds = [(feed['title'], feed['url'], feed['_id'])]
     elif 'identifier' in kwargs:
         feed = db.feeds.find_one({'_id' : kwargs['identifier']})
         if feed:
-            feeds = [(feed['title'], feed['url'])]
+            feeds = [(feed['title'], feed['url'], feed['_id'])]
     else:
-        # If no feeds are specified, get all feeds from the database
-        feeds = [(feed['title'], feed['url']) for feed in db.feeds.find()]
+        if method == 'bulk':
+            # Update all active feeds
+            feeds = bulk(db, *args, **kwargs)
+        elif method == 'batch':
+            # Draw a random feed sample
+            feeds = batch(db, *args, **kwargs)
+        elif method == 'roulette':
+            # Roulette wheel selection
+            feeds = roulette(db, *args, **kwargs)
 
-    downloads = 0
-    for feed in feeds:
-        articles = pull(feed, jobs = 1)
-        print('Downloaded %d RSS article(s) for feed "%s"' % (len(articles), feed[0]))
+    print('Update method: %s • %s: %d' % (method, 'Batch size' if method in ('batch', 'roulette') else 'Feeds', len(feeds)))
+
+    # This will download the respective feeds and put new articles in the "downloads" collection
+    download(feeds, *args, **kwargs)
+
+    print('Updating feed and tag metadata.')
+
+    # Update "last-update" timestamp in feed information
+    for title, url, feedid in feeds:
+        feed = db.feeds.find_one({'_id' : feedid})
+        feed['last-update'] = now
+        db.feeds.replace_one({'_id' : feedid}, feed)
+
+    # Find out how many new articles exist per feed
+    feed_counter = Counter(element['feed-id'] for element in db.downloads.find(projection = ('feed-id',)))
+    tag_counter = Counter()
+
+    # Now update the respective feed metadata (e.g. total number of articles, etc.)
+    for feedid in feed_counter:
+        feed = db.feeds.find_one({'_id' : feedid})
+        if feed:
+            for key in ('total-articles', 'visible-articles', 'unread-articles'):
+                feed[key] += feed_counter[feedid]
+            db.feeds.replace_one({'_id' : feedid}, feed)
+
+            # Update the tag counter
+            tag_counter += Counter(feed['tags'] * feed_counter[feedid])
+
+    # Update the respective tag metadata
+    for title in tag_counter:
+        tag = db.tags.find_one({'title' : title})
+        if tag:
+            for key in ('total-articles', 'visible-articles', 'unread-articles'):
+                tag[key] += tag_counter[title]
+            db.tags.replace_one({'_id' : tag['_id']}, tag)
+        else:
+            # This is a new tag
+            pass
+
+    # Finally, transfer the articles to the actual "articles" collection and wipe "downloads" collection
+    N = process()
+    return N
 
         # Put all articles in a "downloads" collection. They will be processed later on...
         if articles:
