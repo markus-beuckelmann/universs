@@ -69,6 +69,8 @@ def feeds(action = None, title = None):
     if request.method == 'POST':
         if action == 'new':
             feed = {'_id' : str(uuid()), 'title' : request.form['title'], 'url' : request.form['url'], 'description' : request.form['description'], 'whitelist' : [], 'blacklist' : [], 'active' : True}
+            for key in ('total-articles', 'marked-articles', 'visible-articles', 'unread-articles'):
+                feed[key] = 0
             feed['tags'] = list(filter(bool, map(lambda tag: tag.strip(), request.form['tags'].split(','))))
 
             # Push new feed to the database
