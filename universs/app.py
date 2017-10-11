@@ -273,7 +273,7 @@ def settings(name = None):
     else:
         if name:
             feed = db.feeds.find_one({'title' : name})
-            return render_template('./settings-feed.html', name = name, feed = feed, feeds = g.feeds, agents = g.agents, filters = g.filters)
+            return render_template('feeds/settings.html', name = name, feed = feed, feeds = g.feeds, agents = g.agents, filters = g.filters)
         return render_template('./settings.html', feeds = g.feeds)
 
 @app.route('/filters')
