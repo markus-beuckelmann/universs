@@ -188,7 +188,30 @@ def tags(title = None):
     if title:
         tag = db.tags.find_one({'title' : title})
         if tag:
-            cursor = db.articles.find({'show' : True, 'tags' : {'$in' : [tag['title']]}}, sort = [('date', -1)], skip = offset, limit = PER_PAGE)
+            query = {'tags' : {'$in' : [tag['title']]}, 'show' : True}
+
+            # Default behavior
+            if SHOW_ONLY_UNREAD:
+                query['read'] = False
+
+            if 'read' in request.args:
+                query['read'] = True
+            elif 'unread' in request.args:
+                query['read'] = False
+            if 'marked' in request.args:
+                query['marked'] = True
+            elif 'unmarked' in request.args:
+                query['marked'] = False
+            if 'starred' in request.args:
+                query['starred'] = True
+            elif 'unstarred' in request.args:
+                query['unstarred'] = False
+            if 'all' in request.args:
+                if 'read' in query:
+                    del query['read']
+
+            cursor = db.articles.find(query)
+            cursor.sort('date', -1).skip(offset).limit(limit)
             articles, N = list(cursor), cursor.count()
         else:
             articles, N = (0, 0)
@@ -196,7 +219,7 @@ def tags(title = None):
         pages = ((N // limit) + bool(N % limit), N)
         return render_template('tags/tags.html', name = title, tag = tag, tags = g.tags, articles = articles, pages = pages, now = timezone(TIMEZONE).localize(datetime.now()))
     else:
-        return render_template('./tags.html', name = title, tags = g.tags, articles = [])
+        return render_template('tags/tags.html', name = title, tags = g.tags, articles = [], now = timezone(TIMEZONE).localize(datetime.now()))
 
 @app.route('/settings')
 @app.route('/settings/feed/<string:name>', methods = ['GET', 'POST'])
