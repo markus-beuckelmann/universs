@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 from time import time
+from datetime import datetime
 from pytz import timezone
 from uuid import uuid4 as uuid
 
@@ -25,6 +26,8 @@ celery = Celery(app.import_name, backend = app.config['CELERY_RESULT_BACKEND'], 
 LIMIT_PER_PAGE = 100
 TIMEZONE = 'Europe/Berlin'
 TIMEFORMAT = '%d.%m.%Y, %H:%M:%S Uhr (%Z)'
+
+SHOW_ONLY_UNREAD = True
 
 @app.before_request
 def init():
@@ -78,7 +81,7 @@ def feeds(action = None, title = None):
         return redirect(url_for('feeds'))
     else:
         if action == 'new':
-            return render_template('./feeds/feed-new.html', feeds = g.feeds, agents = g.agents, filters = g.filters)
+            return render_template('./feeds/new.html', feeds = g.feeds, agents = g.agents, filters = g.filters, now = timezone(TIMEZONE).localize(datetime.now()))
         elif action == 'delete':
             if title:
                 feed = db.feeds.find_one({'title' : title})
@@ -109,24 +112,67 @@ def feeds(action = None, title = None):
             offset = max(0, (int(page) - 1) * limit)
 
             if title:
+                feed = db.feeds.find_one({'title' : title})
+                if feed:
+                    query = {'feed-id' : feed['_id'], 'show' : True}
 
-                if title == '_all':
-                    cursor = db.articles.find({'show' : True}, sort = [('date', -1)], skip = offset, limit = PER_PAGE)
+                    # Default behavior
+                    if SHOW_ONLY_UNREAD:
+                        query['read'] = False
+
+                    if 'read' in request.args:
+                        query['read'] = True
+                    elif 'unread' in request.args:
+                        query['read'] = False
+                    if 'marked' in request.args:
+                        query['marked'] = True
+                    elif 'unmarked' in request.args:
+                        query['marked'] = False
+                    if 'starred' in request.args:
+                        query['starred'] = True
+                    elif 'unstarred' in request.args:
+                        query['starred'] = False
+                    if 'all' in request.args:
+                        if 'read' in query:
+                            del query['read']
+
+                    cursor = db.articles.find(query)
+                    cursor.sort('date', -1).skip(offset).limit(limit)
                     articles, N = list(cursor), cursor.count()
-                    pages = ((N // PER_PAGE) + bool(N % PER_PAGE), N)
-                    feed = {'title' : 'Alle Artikel'}
-                    return render_template('./feeds/feeds.html', name = title, feeds = g.feeds, feed = feed, articles = articles, pages = pages, special = True)
                 else:
-                    feed = db.feeds.find_one({'title' : title})
-                    if feed:
-                        cursor = db.articles.find({'feed-id' : feed['_id'], 'show' : True}, sort = [('date', -1)], skip = offset, limit = PER_PAGE)
-                        articles, N = list(cursor), cursor.count()
-                    else:
-                        articles, N = (0, 0)
-                    pages = ((N // PER_PAGE) + bool(N % PER_PAGE), N)
-                    return render_template('./feeds/feeds.html', name = title, feeds = g.feeds, feed = feed, articles = articles, pages = pages)
+                    articles, N = (0, 0)
+
+                pages = ((N // limit) + bool(N % limit), N)
+                return render_template('./feeds/feeds.html', name = title, feeds = g.feeds, feed = feed, articles = articles, pages = pages, now = timezone(TIMEZONE).localize(datetime.now()))
             else:
-                return render_template('./feeds/feeds.html', name = title, feeds = g.feeds, articles = [])
+                query = {'show' : True}
+
+                # Default behavior
+                if SHOW_ONLY_UNREAD:
+                    query['read'] = False
+
+                if 'read' in request.args:
+                    query['read'] = True
+                elif 'unread' in request.args:
+                    query['read'] = False
+                if 'marked' in request.args:
+                    query['marked'] = True
+                elif 'unmarked' in request.args:
+                    query['marked'] = False
+                if 'starred' in request.args:
+                    query['starred'] = True
+                elif 'unstarred' in request.args:
+                    query['starred'] = False
+                if 'all' in request.args:
+                    if 'read' in query:
+                        del query['read']
+
+                cursor = db.articles.find(query)
+                cursor.sort('date', -1).skip(offset).limit(limit)
+
+                articles, N = list(cursor), cursor.count()
+                pages = ((N // limit) + bool(N % limit), N)
+                return render_template('./feeds/feeds.html', name = title, feeds = g.feeds, feed = {'title' : 'Alle Artikel'}, articles = articles, pages = pages, special = True, now = timezone(TIMEZONE).localize(datetime.now()))
 
 @app.route('/tags')
 @app.route('/tags/<string:title>')
