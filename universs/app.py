@@ -347,41 +347,34 @@ def agents(action = None, uid = None, name = None):
         agents = g.get('agents', [])
         return render_template('./agents/agents.html', feeds = g.feeds, agents = agents)
 
-@app.route('/read/<string:uid>')
-def read(uid):
+@app.route('/flag/<string:f>/<string:uid>')
+def flag(f, uid):
 
     db = g.db
 
     article = db.articles.find_one({'_id' : uid})
     if article:
-        if article['read']:
-            article['read'] = False
-            # Update feed and tag metadata
-            db.feeds.update_one({'_id' : article['feed-id']}, {'$inc' : {'unread-articles' : 1}})
-            db.tags.update_many({'title' : {'$in' : article['tags']}}, {'$inc' : {'unread-articles' : 1}})
-        else:
+        if f == 'read' and not article['read']:
             article['read'] = True
             # Update feed and tag metadata
             db.feeds.update_one({'_id' : article['feed-id']}, {'$inc' : {'unread-articles' : -1}})
             db.tags.update_many({'title' : {'$in' : article['tags']}}, {'$inc' : {'unread-articles' : -1}})
-
-        # Push changes to database
-        db.articles.replace_one({'_id' : article['_id']}, article)
-        return jsonify({'message' : 'Ok', 'status' : 200, 'mimetype' : 'application/json'})
-    else:
-        return jsonify({'message' : 'Article not found', 'status' : 200, 'mimetype' : 'application/json'})
-
-@app.route('/marked/<string:uid>')
-def marked(uid):
-
-    db = g.db
-
-    article = db.articles.find_one({'_id' : uid})
-    if article:
-        if article['marked']:
-            article['marked'] = False
-        else:
+        elif f == 'unread' and article['read']:
+            article['read'] = False
+            # Update feed and tag metadata
+            db.feeds.update_one({'_id' : article['feed-id']}, {'$inc' : {'unread-articles' : 1}})
+            db.tags.update_many({'title' : {'$in' : article['tags']}}, {'$inc' : {'unread-articles' : 1}})
+        elif f in ('mark', 'marked') and not article['marked']:
             article['marked'] = True
+        elif f in ('unmark', 'unmarked') and article['marked']:
+            article['marked'] = False
+        elif f in ('star', 'starred') and not article['starred']:
+            article['starred'] = True
+        elif f in ('unstar', 'unstarred') and article['starred']:
+            article['starred'] = False
+        else:
+            return jsonify({'message' : 'No action required', 'status' : 200, 'mimetype' : 'application/json'})
+
         # Push changes to database
         db.articles.replace_one({'_id' : article['_id']}, article)
         return jsonify({'message' : 'Ok', 'status' : 200, 'mimetype' : 'application/json'})
