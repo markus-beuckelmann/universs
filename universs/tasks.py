@@ -14,6 +14,9 @@ from pymongo.errors import DuplicateKeyError, BulkWriteError
 from datetime import datetime
 from hashlib import md5
 from collections import Counter
+from lxml.html.clean import Cleaner as HTMLCleaner
+from lxml.etree import XMLSyntaxError
+from htmlmin import minify
 
 # By default automatically perform a full update every hour
 celery.conf.beat_schedule = {
@@ -208,6 +211,22 @@ def process(*args, **kwargs):
         # Get some feed specific information from the database
         feed = db.feeds.find_one({'title' : article['feed-name']})
         article['tags'] = feed['tags']
+
+        # Clean HTML (using lxml)
+        cleaner = HTMLCleaner()
+        attributes = ('scripts', 'javascript', 'comments', 'meta', 'forms', 'page_structure', 'annoying_tags', 'safe_attrs_only')
+        for attribute in attributes:
+            setattr(cleaner, attribute, True)
+        blacklist = ('align', 'valign', 'hspace', 'vspace', 'class')
+        cleaner.safe_attrs -= set(blacklist)
+
+        try:
+            article['content'] = cleaner.clean_html(article['content'])
+        except XMLSyntaxError:
+            pass
+
+        # Minify HTML (using htmlmin)
+        article['content'] = minify(article['content'], remove_empty_space = True, reduce_boolean_attributes = True)
 
         # Delete article from downloads collection
         db.downloads.delete_one({'_id' : uid})
