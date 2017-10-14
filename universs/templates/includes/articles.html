@@ -66,7 +66,7 @@
                 <li id="{{ article["_id"] }}-unread-button" class="breadcrumb-item pull-right"{% if not article["read"] %} style="display: none;"{% endif %}><button type="button" class="btn btn-success btn-xs" onclick="unread('{{ article["_id"] }}')" title="Ungelesen"><span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span></button></li>
                 <li id="{{ article["_id"] }}-read-button" class="breadcrumb-item pull-right"{% if article["read"] %} style="display: none;"{% endif %}><button type="button" class="btn btn-success btn-xs" onclick="read('{{ article["_id"] }}')" title="Gelesen"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></button></li>
               </ol>
-              <div class="article-content well well-sm">
+              <div class="article-content well well-sm clearfix">
                 {# We need to take care of nested comments...  #}
                 {{ article["content"]|replace("<!--", "<!- -")|replace("-->", "- ->")|safe }}
               </div>
