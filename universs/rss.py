@@ -77,7 +77,7 @@ def _post_process(articles, title = '', verbose = False):
             if key not in article:
                 article[key] = ''
         # Make sure the following keys don't exist
-        for key in ('authors', 'published', 'published_parsed', 'date_parsed', 'subtitle'):
+        for key in ('authors', 'published', 'published_parsed', 'date_parsed', 'subtitle', 'summary'):
             if key in article:
                 del article[key]
 
