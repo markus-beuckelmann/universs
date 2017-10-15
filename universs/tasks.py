@@ -228,6 +228,10 @@ def process(*args, **kwargs):
         # Minify HTML (using htmlmin)
         article['content'] = minify(article['content'], remove_empty_space = True, reduce_boolean_attributes = True)
 
+        # Remove leading and trailing whitespace
+        for key in ('content', 'text', 'title'):
+            article[key] = article[key].strip()
+
         # Delete article from downloads collection
         db.downloads.delete_one({'_id' : uid})
 

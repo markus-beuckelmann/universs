@@ -81,6 +81,10 @@ def _post_process(articles, title = '', verbose = False):
             if key in article:
                 del article[key]
 
+        # Remove leading and trailing whitespace
+        for key in ('content', 'text', 'title'):
+            article[key] = article[key].strip()
+
         # Make article["date"] timezone aware
         try:
             article['date'] = pytz.utc.localize(article['date'])
