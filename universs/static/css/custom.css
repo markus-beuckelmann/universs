@@ -62,7 +62,7 @@ div#feed-information {
 }
 
 div.article-content {
-    padding: 1.5em 2em;
+    padding: 1.25em;
     font-size: 0.95em;
     background-color: #fcfcfc;
 }
@@ -76,9 +76,9 @@ div#feed-articles {
 
 div#feed-articles img {
     max-width: 40%;
-    padding: 1em;
-    padding-left: 0em;
+    padding-right: 1em;
     height: auto;
+    float: left;
 }
 
 ol.breadcrumb {
