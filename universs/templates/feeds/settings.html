@@ -1,144 +1,144 @@
 {% extends "settings.html" %}
 
 {% block javascript %}
-    <script>
+  <script>
     function numerate() {
-      $('fieldset#agents div.row select').each(function(i, item) {
-        $(item).attr('name', 'agents-' + i);
-      });
-      $('fieldset#filters div.row select').each(function(i, item) {
-        $(item).attr('name', 'filters-' + i);
-      });
+        $('fieldset#agents div.row select').each(function(i, item) {
+            $(item).attr('name', 'agents-' + i);
+        });
+        $('fieldset#filters div.row select').each(function(i, item) {
+            $(item).attr('name', 'filters-' + i);
+        });
     }
-    </script>
+  </script>
 {% endblock %}
 
 {% block content %}
 
-          <h1 class="page-header">Einstellungen: "{{ name }}"</h1>
-          <div id="content">
-            <form action="/settings/feed/{{ name }}" method="post">
-              <input type="hidden" name="id" value="{{ feed["_id"] }}">
-              <fieldset class="form-group">
-                <legend>Allgemeine Informationen</legend>
-                <div class="form-group">
-                  <label for="feed-title">Titel</label>
-                  <input type="text" class="form-control" id="feed-title" name="title" placeholder="..." value="{{ feed["title"] }}">
+  <h1 class="page-header">Einstellungen: "{{ name }}"</h1>
+  <div id="content">
+    <form action="/settings/feed/{{ name }}" method="post">
+      <input type="hidden" name="id" value="{{ feed["_id"] }}">
+      <fieldset class="form-group">
+        <legend>Allgemeine Informationen</legend>
+        <div class="form-group">
+          <label for="feed-title">Titel</label>
+          <input type="text" class="form-control" id="feed-title" name="title" placeholder="..." value="{{ feed["title"] }}">
+        </div>
+        <div class="form-group">
+          <label for="feed-url">URL</label>
+          <input type="text" class="form-control" id="feed-url" name="url" placeholder="http://" value="{{ feed["url"] }}">
+        </div>
+        <div class="form-group">
+          <label for="feed-tags">Tags</label>
+          <input type="text" class="form-control" id="feed-tags" name="tags" placeholder="Politik, Technik, ..." value="{{ feed["tags"]|join(", ") }}">
+        </div>
+        <div class="form-group">
+          <label for="feed-description">Beschreibung</label>
+          <textarea id="feed-description" name="description" class="form-control" rows="3" >{{ feed["description"] }}</textarea>
+        </div>
+        <p class="text-muted">{% if feed["active"]%}Aktiviert{% else %}Deaktiviert{% endif %} • {{ feed["visible-articles"] }} Artikel{% if feed["last-update"] %} • Letzte Aktualisierung: {{ feed["last-update"]|dt }}{% endif %}</p>
+      </fieldset>
+      <fieldset class="form-group" id="agents" disabled>
+        <legend>Aktive Agenten</legend>
+        <div class="well">
+          {% if feed["filters"]|length > 0 %}
+            {% for fid in feed["filters"] %}
+              <div class="form-group row">
+                <div class="col-md-10">
+                  <select class="form-control">
+                    <option value=""></option>
+                    {% for f in filters|sort(attribute = "name") %}
+                      {% if f["_id"] == fid  %}
+                        <option value="{{ f["_id"] }}" selected>{{ f["name"] }}</option>
+                      {% else %}
+                        <option value="{{ f["_id"] }}">{{ f["name"] }}</option>
+                      {% endif %}
+                    {% endfor %}
+                  </select>
                 </div>
-                <div class="form-group">
-                  <label for="feed-url">URL</label>
-                  <input type="text" class="form-control" id="feed-url" name="url" placeholder="http://" value="{{ feed["url"] }}">
+                <div class="col-md-2">
+                  {% set onclickjs1 = "$(this).closest('div.row').clone().prependTo($(this).closest('div.well'))" %}
+                  <button type="button" class="btn btn-success btn-sm" onclick="{{ onclickjs1 }}">+</button>
+                  {% set onclickjs2 = "$(this).closest('div.row').remove()" %}
+                  <button type="button" class="btn btn-danger btn-sm" onclick="{{ onclickjs2 }}">-</button>
                 </div>
-                <div class="form-group">
-                  <label for="feed-tags">Tags</label>
-                  <input type="text" class="form-control" id="feed-tags" name="tags" placeholder="Politik, Technik, ..." value="{{ feed["tags"]|join(", ") }}">
-                </div>
-                <div class="form-group">
-                  <label for="feed-description">Beschreibung</label>
-                  <textarea id="feed-description" name="description" class="form-control" rows="3" >{{ feed["description"] }}</textarea>
-                </div>
-              <p class="text-muted">{% if feed["active"]%}Aktiviert{% else %}Deaktiviert{% endif %} • {{ feed["visible-articles"] }} Artikel{% if feed["last-update"] %} • Letzte Aktualisierung: {{ feed["last-update"]|dt }}{% endif %}</p>
-              </fieldset>
-              <fieldset class="form-group" id="agents" disabled>
-                <legend>Aktive Agenten</legend>
-                <div class="well">
-                  {% if feed["filters"]|length > 0 %}
-                  {% for fid in feed["filters"] %}
-                  <div class="form-group row">
-                    <div class="col-md-10">
-                      <select class="form-control">
-                          <option value=""></option>
-                        {% for f in filters|sort(attribute = "name") %}
-                          {% if f["_id"] == fid  %}
-                          <option value="{{ f["_id"] }}" selected>{{ f["name"] }}</option>
-                          {% else %}
-                          <option value="{{ f["_id"] }}">{{ f["name"] }}</option>
-                          {% endif %}
-                        {% endfor %}
-                      </select>
-                    </div>
-                    <div class="col-md-2">
-                      {% set onclickjs1 = "$(this).closest('div.row').clone().prependTo($(this).closest('div.well'))" %}
-                      <button type="button" class="btn btn-success btn-sm" onclick="{{ onclickjs1 }}">+</button>
-                      {% set onclickjs2 = "$(this).closest('div.row').remove()" %}
-                      <button type="button" class="btn btn-danger btn-sm" onclick="{{ onclickjs2 }}">-</button>
-                    </div>
-                  </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="form-group row">
+              <div class="col-md-10">
+                <select class="form-control">
+                  <option value=""></option>
+                  {% for a in agents|sort(attribute = "name") %}
+                    <option value="{{ a["_id"] }}">{{ a["name"] }}</option>
                   {% endfor %}
-                  {% else %}
-                  <div class="form-group row">
-                    <div class="col-md-10">
-                      <select class="form-control">
-                          <option value=""></option>
-                        {% for a in agents|sort(attribute = "name") %}
-                          <option value="{{ a["_id"] }}">{{ a["name"] }}</option>
-                        {% endfor %}
-                      </select>
-                    </div>
-                    <div class="col-md-2">
-                      {% set onclickjs1 = "$(this).closest('div.row').clone().prependTo($(this).closest('div.well'))" %}
-                      <button type="button" class="btn btn-success btn-sm" onclick="{{ onclickjs1 }}">+</button>
-                      {% set onclickjs2 = "$(this).closest('div.row').remove()" %}
-                      <button type="button" class="btn btn-danger btn-sm" onclick="{{ onclickjs2 }}">-</button>
-                    </div>
-                  </div>
-                  {% endif %}
+                </select>
+              </div>
+              <div class="col-md-2">
+                {% set onclickjs1 = "$(this).closest('div.row').clone().prependTo($(this).closest('div.well'))" %}
+                <button type="button" class="btn btn-success btn-sm" onclick="{{ onclickjs1 }}">+</button>
+                {% set onclickjs2 = "$(this).closest('div.row').remove()" %}
+                <button type="button" class="btn btn-danger btn-sm" onclick="{{ onclickjs2 }}">-</button>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </fieldset>
+      <fieldset class="form-group" id="filters" disabled>
+        <legend>Aktive Filter</legend>
+        <div class="well">
+          {% if feed["pipelines"]|length > 0 %}
+            {% for pid in feed["pipelines"] %}
+              <div class="form-group row">
+                <div class="col-md-10">
+                  <select class="form-control">
+                    <option value=""></option>
+                    {% for a in filters|sort(attribute = "name") %}
+                      {% if p["_id"] == pid  %}
+                        <option value="{{ f["_id"] }}" selected>{{ f["name"] }}</option>
+                      {% else %}
+                        <option value="{{ f["_id"] }}">{{ f["name"] }}</option>
+                      {% endif %}
+                    {% endfor %}
+                  </select>
                 </div>
-              </fieldset>
-              <fieldset class="form-group" id="filters" disabled>
-                <legend>Aktive Filter</legend>
-                <div class="well">
-                  {% if feed["pipelines"]|length > 0 %}
-                  {% for pid in feed["pipelines"] %}
-                  <div class="form-group row">
-                    <div class="col-md-10">
-                      <select class="form-control">
-                          <option value=""></option>
-                        {% for a in filters|sort(attribute = "name") %}
-                          {% if p["_id"] == pid  %}
-                          <option value="{{ f["_id"] }}" selected>{{ f["name"] }}</option>
-                          {% else %}
-                          <option value="{{ f["_id"] }}">{{ f["name"] }}</option>
-                          {% endif %}
-                        {% endfor %}
-                      </select>
-                    </div>
-                    <div class="col-md-2">
-                      {% set onclickjs1 = "$(this).closest('div.row').clone().prependTo($(this).closest('div.well'))" %}
-                      <button type="button" class="btn btn-success btn-sm" onclick="{{ onclickjs1 }}">+</button>
-                      {% set onclickjs2 = "$(this).closest('div.row').remove()" %}
-                      <button type="button" class="btn btn-danger btn-sm" onclick="{{ onclickjs2 }}">-</button>
-                    </div>
-                  </div>
+                <div class="col-md-2">
+                  {% set onclickjs1 = "$(this).closest('div.row').clone().prependTo($(this).closest('div.well'))" %}
+                  <button type="button" class="btn btn-success btn-sm" onclick="{{ onclickjs1 }}">+</button>
+                  {% set onclickjs2 = "$(this).closest('div.row').remove()" %}
+                  <button type="button" class="btn btn-danger btn-sm" onclick="{{ onclickjs2 }}">-</button>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="form-group row">
+              <div class="col-md-10">
+                <select class="form-control">
+                  <option value=""></option>
+                  {% for f in filters|sort(attribute = "name") %}
+                    <option value="{{ f["_id"] }}">{{ f["name"] }}</option>
                   {% endfor %}
-                  {% else %}
-                  <div class="form-group row">
-                    <div class="col-md-10">
-                      <select class="form-control">
-                          <option value=""></option>
-                        {% for f in filters|sort(attribute = "name") %}
-                          <option value="{{ f["_id"] }}">{{ f["name"] }}</option>
-                        {% endfor %}
-                      </select>
-                    </div>
-                    <div class="col-md-2">
-                      {% set onclickjs1 = "$(this).closest('div.row').clone().prependTo($(this).closest('div.well'))" %}
-                      <button type="button" class="btn btn-success btn-sm" onclick="{{ onclickjs1 }}">+</button>
-                      {% set onclickjs2 = "$(this).closest('div.row').remove()" %}
-                      <button type="button" class="btn btn-danger btn-sm" onclick="{{ onclickjs2 }}">-</button>
-                    </div>
-                  </div>
-                  {% endif %}
-                </div>
-              </fieldset>
-              <button type="button" class="btn btn-success" onclick="$('form').submit()">Speichern</button>
-              {% if feed["active"] %}
-                <a type="button" class="btn btn-warning" href="/feeds/deactivate/{{ feed["title"] }}">Deaktivieren</a>
-              {% else %}
-                <a type="button" class="btn btn-warning" href="/feeds/activate/{{ feed["title"] }}">Aktivieren</a>
-              {% endif %}
-              <a type="button" class="btn btn-primary" href="/feed/{{ feed["title"] }}">Anzeigen</a>
-              <a type="button" class="btn btn-danger" href="/feeds/delete/{{ feed["title"] }}">Löschen</a>
-          </div>
+                </select>
+              </div>
+              <div class="col-md-2">
+                {% set onclickjs1 = "$(this).closest('div.row').clone().prependTo($(this).closest('div.well'))" %}
+                <button type="button" class="btn btn-success btn-sm" onclick="{{ onclickjs1 }}">+</button>
+                {% set onclickjs2 = "$(this).closest('div.row').remove()" %}
+                <button type="button" class="btn btn-danger btn-sm" onclick="{{ onclickjs2 }}">-</button>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </fieldset>
+      <button type="button" class="btn btn-success" onclick="$('form').submit()">Speichern</button>
+      {% if feed["active"] %}
+        <a type="button" class="btn btn-warning" href="/feeds/deactivate/{{ feed["title"] }}">Deaktivieren</a>
+      {% else %}
+        <a type="button" class="btn btn-warning" href="/feeds/activate/{{ feed["title"] }}">Aktivieren</a>
+      {% endif %}
+      <a type="button" class="btn btn-primary" href="/feed/{{ feed["title"] }}">Anzeigen</a>
+      <a type="button" class="btn btn-danger" href="/feeds/delete/{{ feed["title"] }}">Löschen</a>
+  </div>
 
 {% endblock %}

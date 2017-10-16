@@ -2,33 +2,34 @@
 
 {% block sidebar %}
 
-          <ul class="list-group">
-            <a class="list-group-item list-group-item-action" href="#"><span class="text-muted small numbering">#1.</span> <strong>Allgemein</strong></a>
-          </ul>
+  <ul class="list-group">
+    <a class="list-group-item list-group-item-action" href="#"><span class="text-muted small numbering">#1.</span> <strong>Allgemein</strong></a>
+  </ul>
 
   {% with prepend = "/statistics" %}
     {% include "sidebar/sidebar-feeds.html" %}
   {% endwith %}
+  
 {% endblock %}
 
 {% block content %}
 
-          <h1 class="page-header">Statistik</h1>
-          <div id="content">
-            <ul>
-              <li>Größe der Datenbank: {{ stats["database-size"]|round(2) }} MiB</li>
-              <li>Letzte Aktualisierung: {{ stats["last-update"]|dt }}</li>
-              <li>Feeds in der Datenbank: {{ stats["number-of-feeds"] }}</li>
-              <li>Deaktivierte Feeds in der Datenbank: {{ stats["number-of-inactive-feeds"] }}</li>
-              <li>Artikel in der Datenbank: {{ stats["number-of-articles"] }}</li>
-              <li>Ungelesene Artikel in der Datenbank: {{ stats["number-of-unread-articles"] }}</li>
-              <li>Tags in der Datenbank: {{ stats["number-of-tags"] }}</li>
-              <li>Registrierte Agenten in der Datenbank: {{ stats["number-of-agents"] }}</li>
-              <li>Registrierte Filter in der Datenbank: {{ stats["number-of-filters"] }}</li>
-              <li>Gefilterte Artikel in der Datenbank: {{ stats["number-of-filtered-articles"] }}</li>
-              <li>Ungefilterte Artikel in der Datenbank: {{ stats["number-of-unfiltered-articles"] }}</li>
-              <li>Markierte Artikel in der Datenbank: {{ stats["number-of-marked-articles"] }}</li>
-            </ul>
-          </div>
+  <h1 class="page-header">Statistik</h1>
+  <div id="content">
+    <ul>
+      <li>Größe der Datenbank: {{ stats["database-size"]|round(2) }} MiB</li>
+      <li>Letzte Aktualisierung: {{ stats["last-update"]|dt }}</li>
+      <li>Feeds in der Datenbank: {{ stats["number-of-feeds"] }}</li>
+      <li>Deaktivierte Feeds in der Datenbank: {{ stats["number-of-inactive-feeds"] }}</li>
+      <li>Artikel in der Datenbank: {{ stats["number-of-articles"] }}</li>
+      <li>Ungelesene Artikel in der Datenbank: {{ stats["number-of-unread-articles"] }}</li>
+      <li>Tags in der Datenbank: {{ stats["number-of-tags"] }}</li>
+      <li>Registrierte Agenten in der Datenbank: {{ stats["number-of-agents"] }}</li>
+      <li>Registrierte Filter in der Datenbank: {{ stats["number-of-filters"] }}</li>
+      <li>Gefilterte Artikel in der Datenbank: {{ stats["number-of-filtered-articles"] }}</li>
+      <li>Ungefilterte Artikel in der Datenbank: {{ stats["number-of-unfiltered-articles"] }}</li>
+      <li>Markierte Artikel in der Datenbank: {{ stats["number-of-marked-articles"] }}</li>
+    </ul>
+  </div>
 
 {% endblock %}

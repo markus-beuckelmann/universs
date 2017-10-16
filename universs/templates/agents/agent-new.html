@@ -2,33 +2,33 @@
 
 {% block content %}
 
-          <div id="content">
-            <h1 class="page-header">Neuer Agent</h1>
-            <form action="/agents/new" method="post">
-              <input type="hidden" name="id" value="{{ uid }}">
-              <div class="form-group">
-                <label for="new-agent-name">Wähle einen Namen</label>
-                <input name="name" type="text" class="form-control" id="new-agent-name" aria-describedby="new-agent-name-help" placeholder="...">
-                <small id="new-agent-name-help" class="form-text text-muted">Auf diese Weise können wir den Agenten leichter wiederfinden.</small>
-              </div>
-              <div class="form-group">
-                <label for="new-agent-description">Beschreibung deines Agenten</label>
-                <textarea name="description" class="form-control" id="new-agent-description" rows="2" placeholder="..."></textarea>
-              </div>
-              <div class="form-group">
-                <labelfor="new-agent-language">Programmiersprache</label>
-                <select name="language"  class="form-control" id="new-agent-language">
-                  <option>Python</option>
-                  <option disabled>JavaScript</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="new-agent-code">Was soll ich tun?</label>
-                <textarea name="code" class="form-control" id="new-agent-code" rows="8"  aria-describedby="new-agent-code-help">def filter(article):</textarea>
-                <small id="new-agent-code-help" class="form-text text-muted">Ein Agent operiert auf einzelnen Artikeln und gibt entweder <code>True</code> oder <code>False</code> zurück. Verfügbare Felder sind: <code>feed</code>, <code>title</code>, <code>content</code>, <code>author</code>, <code>language</code>, <code>link</code></small>.
-              </div>
-              <button type="submit" class="btn btn-primary">Speichern</button>
-            </form>
-          </div>
+  <div id="content">
+    <h1 class="page-header">Neuer Agent</h1>
+    <form action="/agents/new" method="post">
+      <input type="hidden" name="id" value="{{ uid }}">
+      <div class="form-group">
+        <label for="new-agent-name">Wähle einen Namen</label>
+        <input name="name" type="text" class="form-control" id="new-agent-name" aria-describedby="new-agent-name-help" placeholder="...">
+        <small id="new-agent-name-help" class="form-text text-muted">Auf diese Weise können wir den Agenten leichter wiederfinden.</small>
+      </div>
+      <div class="form-group">
+        <label for="new-agent-description">Beschreibung deines Agenten</label>
+        <textarea name="description" class="form-control" id="new-agent-description" rows="2" placeholder="..."></textarea>
+      </div>
+      <div class="form-group">
+        <labelfor="new-agent-language">Programmiersprache</label>
+        <select name="language"  class="form-control" id="new-agent-language">
+          <option>Python</option>
+          <option disabled>JavaScript</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="new-agent-code">Was soll ich tun?</label>
+        <textarea name="code" class="form-control" id="new-agent-code" rows="8"  aria-describedby="new-agent-code-help">def filter(article):</textarea>
+        <small id="new-agent-code-help" class="form-text text-muted">Ein Agent operiert auf einzelnen Artikeln und gibt entweder <code>True</code> oder <code>False</code> zurück. Verfügbare Felder sind: <code>feed</code>, <code>title</code>, <code>content</code>, <code>author</code>, <code>language</code>, <code>link</code></small>.
+      </div>
+      <button type="submit" class="btn btn-primary">Speichern</button>
+    </form>
+  </div>
 
 {% endblock %}
