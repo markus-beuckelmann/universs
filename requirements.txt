@@ -1,3 +1,4 @@
+numpy
 feedparser
 beautifulsoup4
 Flask
