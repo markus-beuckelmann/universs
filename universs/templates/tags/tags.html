@@ -4,7 +4,7 @@
   <script src="/static/js/universs.articles.js"></script>
 {% endblock %}
 
-{% block sidebar %}
+{% block navbar %}
   <ul class="list-group">
     {% for tag in tags|sort(attribute = "title") %}
       <a id="tag-{{ loop.index }}" class="list-group-item {% if tag["title"] == name %} active{% else %}list-group-item-action{% endif %}" href="{{ prepend }}/tags/{{ tag["title"] }}#tag-{{ loop.index }}"><span class="text-muted small numbering">#{{ loop.index }}</span> <strong>{{ tag["title"] }}</strong>{% if tag["unread-articles"] > 0 %}<span class="badge badge-default badge-pill unread-badge">{{ tag["unread-articles"] }}</span>{% endif %}</a>
