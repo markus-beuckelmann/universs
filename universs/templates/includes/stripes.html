@@ -1,0 +1,33 @@
+{# Stripes... #}
+{% if stripes["1h"] and (now - article["date"]).total_seconds() >= 3600 %}
+  {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">1 Stunde</span></div>{% endif %}
+  {% set _ = stripes.update({'1h' : False}) %}
+{% endif %}
+{% if stripes["24h"] and (now - article["date"]).total_seconds() >= (24*3600) %}
+  {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">24 Stunden</span></div>{% endif %}
+  {% set _ = stripes.update({'24h' : False}) %}
+{% endif %}
+{% if stripes["3d"] and (now - article["date"]).total_seconds() >= (3*24*3600) %}
+  {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">3 Tage</span></div>{% endif %}
+  {% set _ = stripes.update({'3d' : False}) %}
+{% endif %}
+{% if stripes["7d"] and (now - article["date"]).total_seconds() >= (7*24*3600) %}
+  {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">1 Woche</span></div>{% endif %}
+  {% set _ = stripes.update({'7d' : False}) %}
+{% endif %}
+{% if stripes["14d"] and (now - article["date"]).total_seconds() >= (14*24*3600) %}
+  {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">14 Tage</span></div>{% endif %}
+  {% set _ = stripes.update({'14d' : False}) %}
+{% endif %}
+{% if stripes["1m"] and (now - article["date"]).total_seconds() >= (30*24*3600) %}
+  {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">1 Monat</span></div>{% endif %}
+  {% set _ = stripes.update({'1m' : False}) %}
+{% endif %}
+{% if stripes["3m"] and (now - article["date"]).total_seconds() >= (3*30*24*3600) %}
+  {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">3 Monate</span></div>{% endif %}
+  {% set _ = stripes.update({'3m' : False}) %}
+{% endif %}
+{% if stripes["1y"] and (now - article["date"]).total_seconds() >= (365*24*3600) %}
+  {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">1 Jahr</span></div>{% endif %}
+  {% set _ = stripes.update({'1y' : False}) %}
+{% endif %}

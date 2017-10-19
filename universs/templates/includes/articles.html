@@ -13,95 +13,30 @@
       {% set _ = stripes.update({'1m' : True}) %}
       {% set _ = stripes.update({'1y' : True}) %}
 
-              
+
       {% for article in articles|sort(attribute = "date", reverse = True) %}
 
-        {# Stripes... #}
-        {% if stripes["1h"] and (now - article["date"]).total_seconds() >= 3600 %}
-          {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">1 Stunde</span></div>{% endif %}
-          {% set _ = stripes.update({'1h' : False}) %}
-        {% endif %}
-        {% if stripes["24h"] and (now - article["date"]).total_seconds() >= (24*3600) %}
-          {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">24 Stunden</span></div>{% endif %}
-          {% set _ = stripes.update({'24h' : False}) %}
-        {% endif %}
-        {% if stripes["3d"] and (now - article["date"]).total_seconds() >= (3*24*3600) %}
-          {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">3 Tage</span></div>{% endif %}
-          {% set _ = stripes.update({'3d' : False}) %}
-        {% endif %}
-        {% if stripes["7d"] and (now - article["date"]).total_seconds() >= (7*24*3600) %}
-          {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">1 Woche</span></div>{% endif %}
-          {% set _ = stripes.update({'7d' : False}) %}
-        {% endif %}
-        {% if stripes["14d"] and (now - article["date"]).total_seconds() >= (14*24*3600) %}
-          {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">14 Tage</span></div>{% endif %}
-          {% set _ = stripes.update({'14d' : False}) %}
-        {% endif %}
-        {% if stripes["1m"] and (now - article["date"]).total_seconds() >= (30*24*3600) %}
-          {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">1 Monat</span></div>{% endif %}
-          {% set _ = stripes.update({'1m' : False}) %}
-        {% endif %}
-        {% if stripes["3m"] and (now - article["date"]).total_seconds() >= (3*30*24*3600) %}
-          {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">3 Monate</span></div>{% endif %}
-          {% set _ = stripes.update({'3m' : False}) %}
-        {% endif %}
-        {% if stripes["1y"] and (now - article["date"]).total_seconds() >= (365*24*3600) %}
-          {% if loop.index > 1 %}<div class="stripe"><span class="text-muted small">1 Jahr</span></div>{% endif %}
-          {% set _ = stripes.update({'1y' : False}) %}
-        {% endif %}
+        {% include "includes/stripes.html" %}
 
-        <li><span class="text-muted small numbering">#{{ loop.index }}</span> {% if special or not hide_feed_name %}<a class="feed-link" href="/feeds/show/{{ article["feed-name"]|urlencode }}">{{ article["feed-name"] }}</a>: {% endif %}<a href="#{{ article["_id"] }}" data-toggle="collapse" class="article-{% if article["read"] %}read{% else %}unread{% endif %} article-{% if article["marked"] %}marked{% else %}unmarked{% endif %} article-{% if article["starred"] %}starred{% else %}unstarred{% endif %}">{{ article["title"] }}</a>{% if article["starred"] %} <span class="small text-muted"> • <small><span class="glyphicon glyphicon-star" aria-hidden="true"></span></small></span>{% endif %} {% if article["marked"] %} <span class="small text-muted"> • <small><span class="glyphicon glyphicon-bookmark" aria-hidden="true"></span></small></span>{% endif %} <span class="small text-muted">• {{ article["date"]|dt }}</span></li>
+        <li>
+          <span class="text-muted small numbering">#{{ loop.index }}</span>
+          {% if special or not hide_feed_name %}
+            <a class="feed-link" href="/feeds/show/{{ article["feed-name"]|urlencode }}">{{ article["feed-name"] }}</a>:
+          {% endif %}
+          &nbsp;<a href="#{{ article["_id"] }}" data-toggle="collapse" class="article-{% if article["read"] %}read{% else %}unread{% endif %} article-{% if article["marked"] %}marked{% else %}unmarked{% endif %} article-{% if article["starred"] %}starred{% else %}unstarred{% endif %}">{{ article["title"] }}</a>
+          {% if article["starred"] %}
+            <span class="small text-muted"> • <small><span class="glyphicon glyphicon-star" aria-hidden="true"></span></small></span>
+          {% endif %}          
+          {% if article["marked"] %}
+            <span class="small text-muted"> • <small><span class="glyphicon glyphicon-bookmark" aria-hidden="true"></span></small></span>
+          {% endif %}
+          <span class="small text-muted">• {{ article["date"]|dt }}</span>
+        </li>
         <div id="{{ article["_id"] }}" class="collapse">
           {# We will comment out the actual content to reduce loading time dramatically! #}
           {# The comments will then be removed automatically when the container is uncollapsed. #}
           <!--
-          <ol class="breadcrumb clearfix">
-            <li class="breadcrumb-item">
-              <strong>Autor</strong>: {{ article["author"] or 'Unbekannt' }}
-            </li>
-            <li class="breadcrumb-item">
-              <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
-              &nbsp;<strong>Veröffentlicht</strong>: {% if article["date"] %}{{ article["date"]|dt }}{% else %}Unbekannt{% endif %}
-            </li>
-            <li class="breadcrumb-item">
-              <span class="glyphicon glyphicon-flag" aria-hidden="true"></span>
-              &nbsp;<strong>Sprache</strong>: {{ article["language"] or 'Unbekannt' }}
-            </li>
-            <li class="breadcrumb-item">
-              <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span>
-              &nbsp;<a href="{{ article["link"] }}">Original</a>
-            </li>
-            <li id="{{ article["_id"] }}-unstarred-button" class="breadcrumb-item pull-right"{% if not article["starred"] %} style="display: none;"{% endif %}>
-              <button type="button" class="btn btn-primary btn-xs" onclick="unstar('{{ article["_id"] }}')" title="Unfavorisieren">
-                <span class="glyphicon glyphicon-star-empty" aria-hidden="true"></span>
-              </button>
-            </li>
-            <li id="{{ article["_id"] }}-starred-button" class="breadcrumb-item pull-right"{% if article["starred"] %} style="display: none;"{% endif %}>
-              <button type="button" class="btn btn-primary btn-xs" onclick="star('{{ article["_id"] }}')" title="Favorisieren">
-                <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
-              </button>
-            </li>
-            <li id="{{ article["_id"] }}-unmark-button" class="breadcrumb-item pull-right"{% if not article["marked"] %} style="display: none;"{% endif %}>
-              <button type="button" class="btn btn-warning btn-xs" onclick="unmark('{{ article["_id"] }}')" title="Demarkieren">
-                <span class="glyphicon glyphicon-erase" aria-hidden="true"></span>
-              </button>
-            </li>
-            <li id="{{ article["_id"] }}-mark-button" class="breadcrumb-item pull-right"{% if article["marked"] %} style="display: none;"{% endif %}>
-              <button type="button" class="btn btn-warning btn-xs" onclick="mark('{{ article["_id"] }}')" title="Markieren">
-                <span class="glyphicon glyphicon-bookmark" aria-hidden="true"></span>
-              </button>
-            </li>
-            <li id="{{ article["_id"] }}-unread-button" class="breadcrumb-item pull-right"{% if not article["read"] %} style="display: none;"{% endif %}>
-              <button type="button" class="btn btn-success btn-xs" onclick="unread('{{ article["_id"] }}')" title="Ungelesen">
-                <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
-              </button>
-            </li>
-            <li id="{{ article["_id"] }}-read-button" class="breadcrumb-item pull-right"{% if article["read"] %} style="display: none;"{% endif %}>
-              <button type="button" class="btn btn-success btn-xs" onclick="read('{{ article["_id"] }}')" title="Gelesen">
-                <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
-              </button>
-            </li>
-          </ol>
+            {% include "includes/articles-breadcrumb.html" %}
           <div class="article-content well well-sm clearfix">
             {# We need to take care of nested comments...  #}
             {{ article["content"]|replace("<!--", "<!- -")|replace("-->", "- ->")|safe }}
