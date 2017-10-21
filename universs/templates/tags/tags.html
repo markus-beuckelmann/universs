@@ -20,7 +20,12 @@
     </div>
     {% if tag %}
       <div class="col-md-12" id="feed-information">
-        <span class="text-muted small">Artikel zum Schlagwort "{{ tag["title"] }}" {% if pages %}• Seite {{ request.args.get("page") or 1 }}/{{ pages[0] }}{% endif %} • {{ articles|length }}/{{ pages[1] }} Artikel • {{ tag["feeds"]|length }} Feed(s)</a></span>
+        <span class="text-muted small">
+          Artikel zum Schlagwort "{{ tag["title"] }}"
+          {% if pages %}• Seite {{ request.args.get("page") or 1 }}/{{ pages[0] }}{% endif %}
+          • {{ articles|length }}/{{ pages[1] }} Artikel
+          • {{ tag["feeds"]|length }} Feed(s)
+        </span>
       </div>
     {% endif %}
 
@@ -35,9 +40,9 @@
       {% endblock %}
 
     </div>
-    
-    {% include 'includes/sidebar.html' %}
-    
+
+    {% include "includes/sidebar.html" %}
+
   </div>
 
 {% endblock %}

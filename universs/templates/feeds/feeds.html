@@ -5,13 +5,13 @@
 {% endblock %}
 
 {% block navbar %}
-  
+
   <ul class="list-group">
     {% for feed in feeds|sort(attribute = "title") %}
       <a id="feed-{{ loop.index }}" class="list-group-item {% if feed["title"] == name %} active{% else %}list-group-item-action{% endif %}" href="{{ prepend }}/feeds/show/{{ feed["title"]|urlencode }}#feed-{{ loop.index }}"><span class="text-muted small numbering">#{{ loop.index }}</span> <strong>{{ feed["title"] }}</strong>{% if feed["filters"]|length > 0 %} <span class="glyphicon glyphicon-hourglass" aria-hidden="true"></span>{% endif %}{% if feed["unread-articles"] %}<span class="badge badge-default unread-badge">{{ feed["unread-articles"] }}</span>{% endif %}</a>
     {% endfor %}
   </ul>
-  
+
 {% endblock %}
 
 {% block content %}
@@ -22,7 +22,14 @@
     </div>
     {% if feed %}
       <div class="col-md-12" id="feed-information">
-        <span class="text-muted small">Feed: "{{ feed["title"] }}" {% if pages %}• Seite {{ request.args.get("page") or 1 }}/{{ pages[0] }}{% endif %} • {{ articles|length }}/{{ pages[1] }} Artikel {% if feed["tags"] %}• Tags: {{ feed["tags"]|join(", ") }} {% endif %}{% if not special %}{% if feed["last-update"] %}• Letzte Aktualisierung: {{ feed["last-update"]|dt }}{% endif %}</span>{% endif %}
+        <span class="text-muted small">
+          Feed: "{{ feed["title"] }}"
+          {% if pages %} • Seite {{ request.args.get("page") or 1 }}/{{ pages[0] }}{% endif %}
+          • {{ articles|length }}/{{ pages[1] }} Artikel
+          {% if feed["tags"] %} • Tags: {{ feed["tags"]|join(", ") }} {% endif %}
+          {% if not special %}
+            {% if feed["last-update"] %} • Letzte Aktualisierung: {{ feed["last-update"]|dt }}{% endif %}</span>
+          {% endif %}
       </div>
     {% endif %}
     <div class="col-md-10" id="articles">
@@ -38,7 +45,7 @@
       {% endblock %}
 
     </div>
-    {% include 'includes/sidebar.html' %}
+    {% include "includes/sidebar.html" %}
   </div>
 
 {% endblock %}
