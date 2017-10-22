@@ -1,3 +1,5 @@
+var active = null;
+
 $(document).ready(function() {
 
     // Bind some key events
@@ -44,14 +46,18 @@ $(document).ready(function() {
     $(".collapse").on('shown.bs.collapse', function(e) {
         // Get the article ID
         var id = $(e.target).data('bs.collapse').$trigger[0].hash.substring(1);
+        // Set the new element as active element (globally)
+        active = $("div#" + id);
         // Uncomment the content
-        $("div#" + id).uncomment()
+        $(active).uncomment()
         // Mark the article as read
         read(id);
     });
 
-    // Normalize the way articles are displayed
-    normalize();
+    // Initialize the active article with the first article in the list
+    // if (active == null) {
+        // active = $("div#feed-articles ul li").first().next();
+    // }
 
 });
 
@@ -154,42 +160,49 @@ function unstar(id) {
 }
 
 function showNext() {
-    var active = document.activeElement;
-    if ($(active).is("body") || $(active).is("a.list-group-item")) {
-        // There is no active element, so let's take the first one
-        var lielement = $("div#feed-articles ul li").first();
+    if (active) {
+        var li = $(active).nextAll("li")[0];
+        if (li == null) {
+            // There is no previous article (i.e. we are at the top)
+            return
+        }
+        active = $(li).next();
+    } else {
+        // First article in list
+        active = $("div#feed-articles ul li").first().next();
+        var li = $(active).prev("li")
     }
-    else {
-        var lielement = $(active).parent().next().next();
-    }
-    var element = $(lielement).next()
-    $(lielement).find("a").focus()
-    $(element).collapse();
+    $(li).find("a").focus();
+    $(active).collapse();
     // Scroll to put the article to the top
-    window.scrollTo(0, $(lielement).offset()["top"] - 80);
+    window.scrollTo(0, $(li).offset()["top"] - 80);
 }
 
 function showPrevious() {
-    var active = document.activeElement;
-    if ($(active).is("body") || $(active).is("a.list-group-item")) {
-        // There is no active element, so let's take the first one
-        var element = $("div#feed-articles ul div").first();
+    if (active) {
+        var li = $(active).prevAll("li")[1];
+        if (li == null) {
+            // There is no next article (i.e. we are at the bottom)
+            return
+        }
+        active = $(li).next();
+    } else {
+        // Last article in list
+        active = $("div#feed-articles ul li").last().next();
+        var li = $(active).prev("li")
     }
-    else {
-        var element = $(active).parent().prev();
-    }
-    var lielement = $(element).prev()
-    $(lielement).find("a").focus()
-    $(element).collapse();
+    $(li).find("a").focus();
+    $(active).collapse();
     // Scroll to put the article to the top
-    window.scrollTo(0, $(lielement).offset()["top"] - 80);
+    window.scrollTo(0, $(li).offset()["top"] - 80);
 }
 
 function toogleRead() {
-    var active = document.activeElement;
-    if ($(active).is("a")) {
-        var id = $(active).attr("href").substring(1);
-        if ($(active).hasClass("article-unread")) {
+    if (active) {
+        var id = $(active).attr("id");
+        var li = $(active).prev()
+        var link = $(li).find('a[href="#' + id + '"]')
+        if ($(link).hasClass("article-unread")) {
             read(id);
         }
         else {
@@ -199,10 +212,11 @@ function toogleRead() {
 }
 
 function toogleMark() {
-    var active = document.activeElement;
-    if ($(active).is("a")) {
-        var id = $(active).attr("href").substring(1);
-        if ($(active).hasClass("article-unmarked")) {
+    if (active) {
+        var id = $(active).attr("id");
+        var li = $(active).prev()
+        var link = $(li).find('a[href="#' + id + '"]')
+        if ($(link).hasClass("article-unmarked")) {
             mark(id);
         }
         else {
@@ -212,10 +226,11 @@ function toogleMark() {
 }
 
 function toogleStar() {
-    var active = document.activeElement;
-    if ($(active).is("a")) {
-        var id = $(active).attr("href").substring(1);
-        if ($(active).hasClass("article-unstarred")) {
+    if (active) {
+        var id = $(active).attr("id");
+        var li = $(active).prev()
+        var link = $(li).find('a[href="#' + id + '"]')
+        if ($(link).hasClass("article-unstarred")) {
             star(id);
         }
         else {
@@ -232,14 +247,16 @@ function markAllAsRead() {
 }
 
 function openCurrentLink() {
-    var active = document.activeElement;
-    var element = $(active).parent().next();
-    var url = $(element).find("ol li a").attr("href");
-    window.open(url);
+    if (active) {
+        var url = $(active).find("ol li a").attr("href");
+        window.open(url);
+    }
 }
 
 function toogleCollapse() {
-    $(document.activeElement).parent().next().collapse("toggle");
+    if (active) {
+        $(active).collapse("toggle")
+    }
 }
 
 function normalize() {
