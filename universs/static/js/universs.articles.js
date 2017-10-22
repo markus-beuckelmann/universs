@@ -258,7 +258,3 @@ function toogleCollapse() {
         $(active).collapse("toggle")
     }
 }
-
-function normalize() {
-    $('div#feed-articles img').removeProp('align');
-}
