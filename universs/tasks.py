@@ -357,3 +357,17 @@ def update_tag_metadata(*args, **kwargs):
                 return update_tag_metadata(title = tag['title'])
 
     return True
+
+def indexes(*args, **kwargs):
+    ''' Ensures proper database indexes. '''
+
+    db = dbinit()
+
+    # Set containing fields that should be indexed
+    keys = {'date', 'show', 'marked', 'starred', 'foo'}
+    # Create a set of all existing indices
+    indices = {index['key'].keys()[0] for index in db.articles.list_indexes()} - {'_id'}
+
+    # Add the missing indices
+    for missing in (keys - indices):
+        db.articles.create_index(missing)
