@@ -27,7 +27,8 @@ LIMIT_PER_PAGE = 100
 TIMEZONE = 'Europe/Berlin'
 TIMEFORMAT = '%d.%m.%Y, %H:%M:%S Uhr (%Z)'
 
-SHOW_ONLY_UNREAD = True
+def now():
+    return timezone(TIMEZONE).localize(datetime.now())
 
 @app.before_request
 def init():
@@ -83,7 +84,7 @@ def feeds(action = None, title = None):
         return redirect(url_for('feeds'))
     else:
         if action == 'new':
-            return render_template('./feeds/new.html', feeds = g.feeds, agents = g.agents, filters = g.filters, now = timezone(TIMEZONE).localize(datetime.now()))
+            return render_template('./feeds/new.html', feeds = g.feeds, agents = g.agents, filters = g.filters, now = now())
         elif action == 'delete':
             if title:
                 feed = db.feeds.find_one({'title' : title})
@@ -221,7 +222,7 @@ def tags(title = None):
         pages = ((N // limit) + bool(N % limit), N)
         return render_template('tags/tags.html', name = title, tag = tag, tags = g.tags, articles = articles, pages = pages, now = timezone(TIMEZONE).localize(datetime.now()))
     else:
-        return render_template('tags/tags.html', name = title, tags = g.tags, articles = [], now = timezone(TIMEZONE).localize(datetime.now()))
+        return render_template('tags/tags.html', name = title, tags = g.tags, response = {}, now = now())
 
 @app.route('/settings')
 @app.route('/settings/feed/<string:name>', methods = ['GET', 'POST'])
