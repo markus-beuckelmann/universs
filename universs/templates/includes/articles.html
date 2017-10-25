@@ -1,5 +1,5 @@
 <div id="feed-articles">
-  {% if articles and articles|length > 0 %}
+  {% if response and response["results"]|length > 0 %}
     <ul>
 
       {# Set variables for 1h, 24h, 3d, 7d, 14d, 1m, 3m, 1y stripes #}
@@ -14,7 +14,7 @@
       {% set _ = stripes.update({'1y' : True}) %}
 
 
-      {% for article in articles|sort(attribute = "date", reverse = True) %}
+      {% for article in response["results"] %}
 
         {% include "includes/stripes.html" %}
 

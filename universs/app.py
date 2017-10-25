@@ -23,9 +23,12 @@ app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379'
 
 celery = Celery(app.import_name, backend = app.config['CELERY_RESULT_BACKEND'], broker = app.config['CELERY_BROKER_URL'])
 
-LIMIT_PER_PAGE = 100
+DEFAULT_PAGE_LIMIT = 100
+DEFAULT_SORT = 'date'
 TIMEZONE = 'Europe/Berlin'
 TIMEFORMAT = '%d.%m.%Y, %H:%M:%S Uhr (%Z)'
+# Set this to 'unread' to only show unread articles by default
+SHOW_ONLY_UNREAD = 'unread'
 
 def now():
     return timezone(TIMEZONE).localize(datetime.now())
@@ -38,6 +41,110 @@ def init():
     g.tags = list(db.tags.find())
     g.agents = list(db.agents.find())
     g.filters = list(db.filters.find())
+
+def get(db, query):
+    ''' Retrieves articles from the database backend. '''
+
+    # Obtain a list of dictionaries containing all flags
+    whitelist = ('show', 'read', 'marked', 'starred')
+    flags = [{key : query[key]} for key in filter(lambda x: x, query) if key in whitelist]
+
+    match = {'$and' : []}
+    if 'feed-id' in query:
+        match['$and'].append(
+            {'feed-id' : query['feed-id']}
+        )
+    if 'tags' in query:
+        if isinstance(query['tags'], (list, tuple)):
+            tags = list(query['tags'])
+        else:
+            tags = [query['tags']]
+        match['$and'].append(
+            {'tags' : {'$in' : tags}}
+        )
+
+    conditions = [
+        {'$and' : flags},
+        # You can add additional clauses here...
+        # e.g. {'$or' : [{'marked' : True, 'starred' : True}]}
+        # if you want to ALWAYS show marked or starred articles no matter what.
+        #
+        # In general: item will be in the pipeline if any of conditions on this level evaluates to True.
+    ]
+    # Now: Append the rest of our conditions to the query...
+    match['$and'].append({'$or' : conditions})
+    # Finally: Query the database...
+    args, kwargs = [], {'allowDiskUse' : True}
+    offset, limit = query.get('offset', 0), query.get('limit', DEFAULT_PAGE_LIMIT)
+    order = 1 if 'reversed' in query else -1
+    cursor = db.articles.aggregate(
+        [
+            {'$match' : match},
+            {'$sort' : {query.get('sort', DEFAULT_SORT) : order}},
+            # This is needed to count the total number of matched documents
+            {'$group' : {
+                '_id' : None,
+                'total' : {'$sum' : 1},
+                'results' : {'$push' : '$$ROOT'}
+            }},
+            {'$project' : {
+                'total' : 1,
+                'results' : {
+                    '$slice' : ['$results', offset, limit]
+                },
+            }},
+            {'$addFields' : {
+                'size' : {'$size' : '$results'},
+                'pages' : {'$ceil' : {'$divide' : ['$total', limit]}},
+                # Also add everything from the query dictionary in the response
+                **{k : v for k, v in query.items()}
+            }},
+        ],
+        *args, **kwargs
+    )
+    response = list(cursor)
+    if response:
+        return response[0]
+    else:
+        return {'results' : [], 'total' : 0, 'size' : 0, 'pages' : 0, **{k : v for k, v in query.items()}}
+
+def build_query(request, query = {}):
+    ''' Builds the query dictionary object to specify the database query. '''
+
+    # Only show articles with "show = True"
+    query.update({'show' : True})
+
+    # Pagination
+    page = request.args.get('page', 1)
+    limit = int(request.args.get('limit', DEFAULT_PAGE_LIMIT))
+    offset = max(0, (int(page) - 1) * limit)
+    query.update({'limit' : limit, 'offset' : offset})
+    # Sorting
+    query.update({'sort' : request.args.get('sort', DEFAULT_SORT)})
+    if 'reversed' in request.args:
+        query.update({'reversed' : True})
+
+    # Default behavior
+    if SHOW_ONLY_UNREAD == 'unread':
+        query['read'] = False
+
+    if 'read' in request.args:
+        query['read'] = True
+    elif 'unread' in request.args:
+        query['read'] = False
+    if 'marked' in request.args:
+        query['marked'] = True
+    elif 'unmarked' in request.args:
+        query['marked'] = False
+    if 'starred' in request.args:
+        query['starred'] = True
+    elif 'unstarred' in request.args:
+        query['starred'] = False
+    if 'all' in request.args:
+        if 'read' in query:
+            del query['read']
+
+    return query
 
 @app.route('/tasks/<string:action>')
 @app.route('/tasks/<string:action>/title/<string:title>')
@@ -108,74 +215,18 @@ def feeds(action = None, title = None):
                     db.feeds.replace_one({'_id' : feed['_id']}, feed)
             return redirect(url_for('feeds'))
         else:
-
-            # Pagination
-            page = request.args.get('page', 1)
-            limit = int(request.args.get('limit', LIMIT_PER_PAGE))
-            offset = max(0, (int(page) - 1) * limit)
-
             if title:
                 feed = db.feeds.find_one({'title' : title})
                 if feed:
-                    query = {'feed-id' : feed['_id'], 'show' : True}
-
-                    # Default behavior
-                    if SHOW_ONLY_UNREAD:
-                        query['read'] = False
-
-                    if 'read' in request.args:
-                        query['read'] = True
-                    elif 'unread' in request.args:
-                        query['read'] = False
-                    if 'marked' in request.args:
-                        query['marked'] = True
-                    elif 'unmarked' in request.args:
-                        query['marked'] = False
-                    if 'starred' in request.args:
-                        query['starred'] = True
-                    elif 'unstarred' in request.args:
-                        query['starred'] = False
-                    if 'all' in request.args:
-                        if 'read' in query:
-                            del query['read']
-
-                    cursor = db.articles.find(query)
-                    cursor.sort('date', -1).skip(offset).limit(limit)
-                    articles, N = list(cursor), cursor.count()
+                    query = build_query(request, {'feed-id' : feed['_id']})
+                    response = get(db, query)
                 else:
-                    articles, N = (0, 0)
-
-                pages = ((N // limit) + bool(N % limit), N)
-                return render_template('./feeds/feeds.html', name = title, feeds = g.feeds, feed = feed, articles = articles, pages = pages, now = timezone(TIMEZONE).localize(datetime.now()))
+                    response = {}
+                return render_template('./feeds/feeds.html', name = title, feeds = g.feeds, feed = feed, response = response, now = now())
             else:
-                query = {'show' : True}
-
-                # Default behavior
-                if SHOW_ONLY_UNREAD:
-                    query['read'] = False
-
-                if 'read' in request.args:
-                    query['read'] = True
-                elif 'unread' in request.args:
-                    query['read'] = False
-                if 'marked' in request.args:
-                    query['marked'] = True
-                elif 'unmarked' in request.args:
-                    query['marked'] = False
-                if 'starred' in request.args:
-                    query['starred'] = True
-                elif 'unstarred' in request.args:
-                    query['starred'] = False
-                if 'all' in request.args:
-                    if 'read' in query:
-                        del query['read']
-
-                cursor = db.articles.find(query)
-                cursor.sort('date', -1).skip(offset).limit(limit)
-
-                articles, N = list(cursor), cursor.count()
-                pages = ((N // limit) + bool(N % limit), N)
-                return render_template('./feeds/feeds.html', name = title, feeds = g.feeds, feed = {'title' : 'Alle Artikel'}, articles = articles, pages = pages, special = True, now = timezone(TIMEZONE).localize(datetime.now()))
+                query = build_query(request)
+                response = get(db, query)
+                return render_template('./feeds/feeds.html', name = title, feeds = g.feeds, feed = {'title' : 'Alle Artikel'}, response = response, special = True, now = now())
 
 @app.route('/tags')
 @app.route('/tags/<string:title>')
@@ -183,44 +234,12 @@ def tags(title = None):
 
     db = g.db
 
-    # Pagination
-    page = request.args.get('page', 1)
-    limit = int(request.args.get('limit', LIMIT_PER_PAGE))
-    offset = max(0, (int(page) - 1) * limit)
-
     if title:
         tag = db.tags.find_one({'title' : title})
         if tag:
-            query = {'tags' : {'$in' : [tag['title']]}, 'show' : True}
-
-            # Default behavior
-            if SHOW_ONLY_UNREAD:
-                query['read'] = False
-
-            if 'read' in request.args:
-                query['read'] = True
-            elif 'unread' in request.args:
-                query['read'] = False
-            if 'marked' in request.args:
-                query['marked'] = True
-            elif 'unmarked' in request.args:
-                query['marked'] = False
-            if 'starred' in request.args:
-                query['starred'] = True
-            elif 'unstarred' in request.args:
-                query['unstarred'] = False
-            if 'all' in request.args:
-                if 'read' in query:
-                    del query['read']
-
-            cursor = db.articles.find(query)
-            cursor.sort('date', -1).skip(offset).limit(limit)
-            articles, N = list(cursor), cursor.count()
-        else:
-            articles, N = (0, 0)
-
-        pages = ((N // limit) + bool(N % limit), N)
-        return render_template('tags/tags.html', name = title, tag = tag, tags = g.tags, articles = articles, pages = pages, now = timezone(TIMEZONE).localize(datetime.now()))
+            query = build_query(request, {'tags' : tag['title']})
+            response = get(db, query)
+        return render_template('tags/tags.html', name = title, tag = tag, tags = g.tags, response = response, now = now())
     else:
         return render_template('tags/tags.html', name = title, tags = g.tags, response = {}, now = now())
 

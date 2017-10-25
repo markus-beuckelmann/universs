@@ -24,8 +24,8 @@
       <div class="col-md-12" id="feed-information">
         <span class="text-muted small">
           Feed: "{{ feed["title"] }}"
-          {% if pages %} • Seite {{ request.args.get("page") or 1 }}/{{ pages[0] }}{% endif %}
-          • {{ articles|length }}/{{ pages[1] }} Artikel
+          {% if response["pages"] %} • Seite {{ request.args.get("page") or 1 }}/{{ response["pages"]|int }}{% endif %}
+          • {{ response["size"]|int }}/{{ response["total"]|int }} Artikel
           {% if feed["tags"] %} • Tags: {{ feed["tags"]|join(", ") }} {% endif %}
           {% if not special %}
             {% if feed["last-update"] %} • Letzte Aktualisierung: {{ feed["last-update"]|dt }}{% endif %}</span>

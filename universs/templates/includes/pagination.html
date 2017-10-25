@@ -1,7 +1,7 @@
-{% if pages and pages[0] > 1 %}
+{% if response and response["pages"] > 1 %}
 
   {# Total number of pages #}
-  {% set total_pages = pages[0] %}
+  {% set pages = response["pages"]|int %}
 
   {# Build query string #}
   {% set qs = [] %}
@@ -24,7 +24,7 @@
       {% endif %}
 
       {% if request.args.get("page")|int - 10 > 1 %}{% set a = request.args.get("page")|int - 10 %}{% else %}{% set a = 1 %}{% endif %}
-      {% if request.args.get("page")|int + 11 < total_pages %}{% set b = request.args.get("page")|int + 11 %}{% else %}{% set b = total_pages + 1 %}{% endif %}
+      {% if request.args.get("page")|int + 11 < pages %}{% set b = request.args.get("page")|int + 11 %}{% else %}{% set b = pages + 1 %}{% endif %}
 
       {% for i in range(a, b) %}
 
@@ -34,7 +34,7 @@
           <li class="page-item"><a class="page-link" href="?page={{ i }}{{ qs }}">{{ i }}</a></li>
         {% endif %}
       {% endfor %}
-      {% if request.args.get("page")|int < total_pages %}
+      {% if request.args.get("page")|int < pages %}
         <li class="page-item">
           <a class="page-link" href="?page={{ request.args.get("page", 2)|int }}{{ qs }}" aria-label="Next">
             <span aria-hidden="true">&raquo;</span>
