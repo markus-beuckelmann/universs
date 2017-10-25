@@ -22,7 +22,8 @@ from htmlmin import minify
 celery.conf.beat_schedule = {
     'auto-update': {
         'task': 'universs.update',
-        'schedule': 3600.0,
+        'schedule': 600.0,
+        'kwargs' : {'method' : 'roulette'}
     },
 }
 celery.conf.timezone = 'UTC'
