@@ -45,8 +45,11 @@ def init():
 def get(db, query):
     ''' Retrieves articles from the database backend. '''
 
-    # Obtain a list of dictionaries containing all flags
-    whitelist = ('show', 'read', 'marked', 'starred')
+    # Obtain a list of dictionaries containing all permitted flags
+    if query.get('all', False):
+        whitelist = ('show', 'marked', 'starred')
+    else:
+        whitelist = ('show', 'read', 'marked', 'starred')
     flags = [{key : query[key]} for key in filter(lambda x: x, query) if key in whitelist]
 
     match = {'$and' : []}
@@ -63,14 +66,17 @@ def get(db, query):
             {'tags' : {'$in' : tags}}
         )
 
-    conditions = [
-        {'$and' : flags},
-        # You can add additional clauses here...
-        # e.g. {'$or' : [{'marked' : True, 'starred' : True}]}
-        # if you want to ALWAYS show marked or starred articles no matter what.
-        #
-        # In general: item will be in the pipeline if any of conditions on this level evaluates to True.
-    ]
+    if query.get('default', False):
+        conditions = [{'$and' : [{'read' : False}]}, {'$or' : [{'marked' : True}]}]
+    else:
+        conditions = [
+            {'$and' : flags},
+            # You can add additional clauses here...
+            # e.g. {'$or' : [{'marked' : True, 'starred' : True}]}
+            # if you want to ALWAYS show articles that are both marked and starred.
+            #
+            # In general: item will be in the pipeline if any of conditions on this level evaluates to True.
+        ]
     # Now: Append the rest of our conditions to the query...
     match['$and'].append({'$or' : conditions})
     # Finally: Query the database...
@@ -132,6 +138,10 @@ def build_query(request, query = {}):
         query['read'] = True
     elif 'unread' in request.args:
         query['read'] = False
+    elif 'all' in request.args:
+        query['all'] = True
+    else:
+        query['default'] = True
     if 'marked' in request.args:
         query['marked'] = True
     elif 'unmarked' in request.args:
@@ -140,9 +150,6 @@ def build_query(request, query = {}):
         query['starred'] = True
     elif 'unstarred' in request.args:
         query['starred'] = False
-    if 'all' in request.args:
-        if 'read' in query:
-            del query['read']
 
     return query
 
@@ -239,6 +246,8 @@ def tags(title = None):
         if tag:
             query = build_query(request, {'tags' : tag['title']})
             response = get(db, query)
+        else:
+            response = {}
         return render_template('tags/tags.html', name = title, tag = tag, tags = g.tags, response = response, now = now())
     else:
         return render_template('tags/tags.html', name = title, tags = g.tags, response = {}, now = now())

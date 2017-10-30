@@ -11,8 +11,12 @@
     {% endif %}
 
     <li class="list-group-item">
+      <span class="glyphicon glyphicon-book" aria-hidden="true"></span> <a href="{{ request.path }}?default{{ qs }}">Standard</a>
+      {% if "default" in query or ("all" not in query and "read" not in query and not "unread" in query) %}<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>{% endif %}
+    </li>
+    <li class="list-group-item">
       <span class="glyphicon glyphicon-asterisk" aria-hidden="true"></span> <a href="{{ request.path }}?all{{ qs }}">Alle Artikel</a>
-      {% if "all" in query%}<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>{% endif %}
+      {% if "all" in query %}<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>{% endif %}
     </li>
     <li class="list-group-item">
       <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> <a href="{{ request.path }}?read{{ qs }}">Gelesene</a>
@@ -20,10 +24,11 @@
     </li>
     <li class="list-group-item">
       <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span> <a href="{{ request.path }}?unread{{ qs }}">Ungelesene</a>
-      {% if "unread" in query or ("all" not in query and not "read" in query) %}<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>{% endif %}
+      {% if "unread" in query %}<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>{% endif %}
     </li>
 
-    {% if "all" in query %}{% set qs = "&all" %}
+    {% if "default" in query %}{% set qs = "&default" %}
+    {% elif "all" in query %}{% set qs = "&all" %}
     {% elif "read" in query %}{% set qs = "&read" %}
     {% elif "unread" in query %}{% set qs = "&unread" %}
     {% elif "starred" in query %}{% set qs = "&starred" %}
@@ -39,13 +44,14 @@
       {% if "unmarked" in query %}<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>{% endif %}
     </li>
 
-    {% if "all" in query %}{% set qs = "&all" %}
+    {% if "default" in query %}{% set qs = "&default" %}
+    {% elif "all" in query %}{% set qs = "&all" %}
     {% elif "read" in query %}{% set qs = "&read" %}
     {% elif "unread" in query %}{% set qs = "&unread" %}
     {% elif "marked" in query %}{% set qs = "&marked" %}
     {% elif "unmarked" in query %}{% set qs = "&unmarked" %}
     {% endif %}
-    
+
     <li class="list-group-item">
       <span class="glyphicon glyphicon-star" aria-hidden="true"></span> <a href="{{ request.path }}?starred{{ qs }}">Favorisierte</a>
       {% if "starred" in query %}<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>{% endif %}
