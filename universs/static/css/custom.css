@@ -40,7 +40,7 @@ a.feed-link:hover {
 
 span.numbering {
     float: left;
-    width: 2.5em;
+    width: 2.7em;
 }
 
 a.article-read {
@@ -48,7 +48,7 @@ a.article-read {
 }
 
 a.article-marked {
-    opacity: 0.9;
+    /* opacity: 0.9; */
     font-weight: bold;
 }
 
