@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 from time import time
+from math import ceil
 from datetime import datetime
 from pytz import timezone
 from uuid import uuid4 as uuid
@@ -79,40 +80,63 @@ def get(db, query):
         ]
     # Now: Append the rest of our conditions to the query...
     match['$and'].append({'$or' : conditions})
-    # Finally: Query the database...
-    args, kwargs = [], {'allowDiskUse' : True}
     offset, limit = query.get('offset', 0), query.get('limit', DEFAULT_PAGE_LIMIT)
     order = 1 if 'reversed' in query else -1
-    cursor = db.articles.aggregate(
-        [
-            {'$match' : match},
-            {'$sort' : {query.get('sort', DEFAULT_SORT) : order}},
-            # This is needed to count the total number of matched documents
-            {'$group' : {
-                '_id' : None,
-                'total' : {'$sum' : 1},
-                'results' : {'$push' : '$$ROOT'}
-            }},
-            {'$project' : {
-                'total' : 1,
-                'results' : {
-                    '$slice' : ['$results', offset, limit]
-                },
-            }},
-            {'$addFields' : {
-                'size' : {'$size' : '$results'},
-                'pages' : {'$ceil' : {'$divide' : ['$total', limit]}},
-                # Also add everything from the query dictionary in the response
-                **{k : v for k, v in query.items()}
-            }},
-        ],
-        *args, **kwargs
-    )
-    response = list(cursor)
-    if response:
-        return response[0]
-    else:
-        return {'results' : [], 'total' : 0, 'size' : 0, 'pages' : 0, **{k : v for k, v in query.items()}}
+
+    # This is an aggregation approach but currently fails for large number of articles due to memory limits.
+    # Even using allowDiskUse = True does not work as a workaround here.
+
+    # pipeline = [
+    #     {'$match' : match},
+    #     {'$sort' : {query.get('sort', DEFAULT_SORT) : order}},
+    #     # This is needed to count the total number of matched documents
+    #     {'$group' : {
+    #         '_id' : None,
+    #         'total' : {'$sum' : 1},
+    #         'results' : {'$limit' : 500, '$push' : '$$ROOT'}
+    #     }},
+    #     {'$project' : {
+    #         'total' : 1,
+    #         'results' : {
+    #             '$slice' : ['$results', offset, limit]
+    #         },
+    #     }},
+    #     {'$addFields' : {
+    #         'size' : {'$size' : '$results'},
+    #         'pages' : {'$ceil' : {'$divide' : ['$total', limit]}},
+    #         # Also add everything from the query dictionary in the response
+    #         **{k : v for k, v in query.items()}
+    #     }},
+    # ]
+    # # Finally: Query the database...
+    # args, kwargs = [], {'allowDiskUse' : True}
+    # cursor = db.articles.aggregate(pipeline, *args, **kwargs)
+    # response = list(cursor)
+
+    pipeline = [
+        {'$match' : match},
+        {'$sort' : {query.get('sort', DEFAULT_SORT) : order}},
+        # Write a temporary "output" collection
+        {'$out' : 'output'}
+    ]
+    # Finally: Query the database...
+    args, kwargs = [], {'allowDiskUse' : True}
+    # First query will perform, matching, sorting and writing to a temporary collection
+    cursor1 = db.articles.aggregate(pipeline, *args, **kwargs)
+    # Second query will simply read from the temporary collection
+    cursor2 = db.output.find(skip = offset, limit = limit)
+
+    # Build the repsonse
+    response = {k : v for k, v in query.items()}
+    response['total'] = db.output.count()
+    response['pages'] = ceil(response['total'] / limit)
+    response['results'] = list(cursor2)
+    response['size'] = len(response['results'])
+
+    # Delete the temporary collection
+    db.output.drop()
+
+    return response
 
 def build_query(request, query = {}):
     ''' Builds the query dictionary object to specify the database query. '''
