@@ -6,6 +6,14 @@ import xml.etree.ElementTree as etree
 from urllib.request import urlopen
 from urllib.error import URLError
 
+from pytz import timezone
+from datetime import datetime
+
+from universs import TIMEZONE
+
+def now():
+    return timezone(TIMEZONE).localize(datetime.now())
+
 def httpcheck(url = 'http://google.com', timeout = 3):
     try:
         urlopen(url)

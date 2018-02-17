@@ -4,10 +4,10 @@
 import numpy as np
 import pytz
 
-from app import celery
-from base import init as dbinit
-from rss import pull
-from helpers import httpcheck
+from universs import celery
+from universs.base import init as dbinit
+from universs.rss import pull
+from universs.helpers import httpcheck
 
 from pymongo.errors import DuplicateKeyError, BulkWriteError
 
