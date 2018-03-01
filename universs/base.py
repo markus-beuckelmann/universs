@@ -12,7 +12,7 @@ def init(server = 'localhost'):
     ''' Establishes a connection to the database backend and returns a handle for the database. '''
 
     client = MongoClient(server, tz_aware = True)
-    db = client.filtr
+    db = client.universs
     collections = db.collection_names()
 
     if 'feeds' not in collections:
