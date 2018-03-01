@@ -3,6 +3,7 @@ feedparser
 beautifulsoup4
 Flask
 celery
+redis
 pymongo
 joblib
 lxml
