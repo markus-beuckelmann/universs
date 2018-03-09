@@ -15,7 +15,7 @@ from datetime import datetime
 from hashlib import md5
 from collections import Counter
 from lxml.html.clean import Cleaner as HTMLCleaner
-from lxml.etree import XMLSyntaxError
+from lxml.etree import XMLSyntaxError, Error
 from htmlmin import minify
 
 # By default automatically perform a full update every hour
@@ -224,6 +224,8 @@ def process(*args, **kwargs):
         try:
             article['content'] = cleaner.clean_html(article['content'])
         except XMLSyntaxError:
+            pass
+        except Error:
             pass
 
         # Minify HTML (using htmlmin)
