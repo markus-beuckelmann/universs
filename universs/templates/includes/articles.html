@@ -23,7 +23,7 @@
           {% if special or not hide_feed_name %}
             <a class="feed-link" href="/feeds/show/{{ article["feed-name"]|urlencode }}">{{ article["feed-name"] }}</a>:
           {% endif %}
-          &nbsp;<a href="#{{ article["_id"] }}" data-toggle="collapse" class="article-{% if article["read"] %}read{% else %}unread{% endif %} article-{% if article["marked"] %}marked{% else %}unmarked{% endif %} article-{% if article["starred"] %}starred{% else %}unstarred{% endif %}">{{ article["title"] }}</a>
+          &nbsp;<a href="#{{ article["_id"] }}" data-toggle="collapse" class="article-{% if article["read"] %}read{% else %}unread{% endif %} article-{% if article["marked"] %}marked{% else %}unmarked{% endif %} article-{% if article["starred"] %}starred{% else %}unstarred{% endif %}">{{ article["title"]|unescape }}</a>
           {% if article["starred"] %}
             <span class="small text-muted"> • <small><span class="glyphicon glyphicon-star" aria-hidden="true"></span></small></span>
           {% endif %}          
