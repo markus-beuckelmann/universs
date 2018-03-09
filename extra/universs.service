@@ -1,0 +1,25 @@
+[Unit]
+Description=Universs RSS reader
+After=network.target
+
+[Service]
+Type=forking
+User=<USER>
+Group=<GROUP>
+WorkingDirectory=/tmp
+
+Environment=PATH=/var/environments/universs/bin
+
+ExecStart=/var/environments/universs/bin/celery multi start worker -A universs.tasks --loglevel=info \
+	--pidfile=/var/run/celery/celery-universs.pid \
+	--logfile=/var/log/celery-universs.log
+ExecStop=/var/environments/universs/bin/celery multi stopwait worker --pidfile=/var/run/celery/celery-universs.pid
+ExecReload=/var/environments/universs/bin/celery multi restart worker -A universs.tasks --loglevel=info \
+	--pidfile=/var/run/celery/celery-universs.pid \
+	--logfile=/var/log/celery-universs.log
+ExecStartPost=/var/environments/universs/bin/celery beat -A universs.tasks \
+	--pidfile=/var/run/celery/celery-beat-universs.pid \
+	--logfile=/var/log/celery-beat-universs.log --detach
+
+[Install]
+WantedBy=multi-user.target
