@@ -18,13 +18,30 @@ from lxml.html.clean import Cleaner as HTMLCleaner
 from lxml.etree import XMLSyntaxError, Error
 from htmlmin import minify
 
-# By default automatically perform a full update every hour
+# This Celery schedule will be executed automatically...
 celery.conf.beat_schedule = {
     'auto-update': {
         'task': 'universs.update',
+        # Once every 10min
         'schedule': 600.0,
         'kwargs' : {'method' : 'roulette'}
     },
+    'auto-update-full': {
+        'task': 'universs.update',
+        # Once every 24h
+        'schedule': 86400,
+        'kwargs' : {'method' : 'bulk'}
+    },
+    'auto-update-tag-metadata': {
+        'task': 'universs.update_tag_metadata',
+        # Once every 24h
+        'schedule': 86400
+    },
+    'auto-update-feed-metadata': {
+        'task': 'universs.update_feed_metadata',
+        # Once every 24h
+        'schedule': 86400
+    }
 }
 celery.conf.timezone = 'UTC'
 
