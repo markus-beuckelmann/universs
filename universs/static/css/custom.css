@@ -49,6 +49,7 @@ a.article-read {
 
 a.article-marked {
     /* opacity: 0.9; */
+    color: #1456c8 ! important;
     font-weight: bold;
 }
 
