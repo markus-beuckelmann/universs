@@ -39,52 +39,52 @@
         </div>
         <p class="text-muted">{% if feed["active"]%}Aktiviert{% else %}Deaktiviert{% endif %} • {{ feed["visible-articles"] }} Artikel{% if feed["last-update"] %} • Letzte Aktualisierung: {{ feed["last-update"]|dt }}{% endif %}</p>
       </fieldset>
-      <fieldset class="form-group" id="agents" disabled>
-        <legend>Aktive Agenten</legend>
-        <div class="well">
-          {% if feed["filters"]|length > 0 %}
-            {% for fid in feed["filters"] %}
-              <div class="form-group row">
-                <div class="col-md-10">
-                  <select class="form-control">
-                    <option value=""></option>
-                    {% for f in filters|sort(attribute = "name") %}
-                      {% if f["_id"] == fid  %}
-                        <option value="{{ f["_id"] }}" selected>{{ f["name"] }}</option>
-                      {% else %}
-                        <option value="{{ f["_id"] }}">{{ f["name"] }}</option>
-                      {% endif %}
-                    {% endfor %}
-                  </select>
-                </div>
-                <div class="col-md-2">
-                  {% set onclickjs1 = "$(this).closest('div.row').clone().prependTo($(this).closest('div.well'))" %}
-                  <button type="button" class="btn btn-success btn-sm" onclick="{{ onclickjs1 }}">+</button>
-                  {% set onclickjs2 = "$(this).closest('div.row').remove()" %}
-                  <button type="button" class="btn btn-danger btn-sm" onclick="{{ onclickjs2 }}">-</button>
-                </div>
-              </div>
-            {% endfor %}
-          {% else %}
-            <div class="form-group row">
-              <div class="col-md-10">
-                <select class="form-control">
-                  <option value=""></option>
-                  {% for a in agents|sort(attribute = "name") %}
-                    <option value="{{ a["_id"] }}">{{ a["name"] }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="col-md-2">
-                {% set onclickjs1 = "$(this).closest('div.row').clone().prependTo($(this).closest('div.well'))" %}
-                <button type="button" class="btn btn-success btn-sm" onclick="{{ onclickjs1 }}">+</button>
-                {% set onclickjs2 = "$(this).closest('div.row').remove()" %}
-                <button type="button" class="btn btn-danger btn-sm" onclick="{{ onclickjs2 }}">-</button>
-              </div>
-            </div>
-          {% endif %}
-        </div>
-      </fieldset>
+      {# <fieldset class="form-group" id="agents" disabled> #}
+      {#   <legend>Aktive Agenten</legend> #}
+      {#   <div class="well"> #}
+      {#     {% if feed["filters"]|length > 0 %} #}
+      {#       {% for fid in feed["filters"] %} #}
+      {#         <div class="form-group row"> #}
+      {#           <div class="col-md-10"> #}
+      {#             <select class="form-control"> #}
+      {#               <option value=""></option> #}
+      {#               {% for f in filters|sort(attribute = "name") %} #}
+      {#                 {% if f["_id"] == fid  %} #}
+      {#                   <option value="{{ f["_id"] }}" selected>{{ f["name"] }}</option> #}
+      {#                 {% else %} #}
+      {#                   <option value="{{ f["_id"] }}">{{ f["name"] }}</option> #}
+      {#                 {% endif %} #}
+      {#               {% endfor %} #}
+      {#             </select> #}
+      {#           </div> #}
+      {#           <div class="col-md-2"> #}
+      {#             {% set onclickjs1 = "$(this).closest('div.row').clone().prependTo($(this).closest('div.well'))" %} #}
+      {#             <button type="button" class="btn btn-success btn-sm" onclick="{{ onclickjs1 }}">+</button> #}
+      {#             {% set onclickjs2 = "$(this).closest('div.row').remove()" %} #}
+      {#             <button type="button" class="btn btn-danger btn-sm" onclick="{{ onclickjs2 }}">-</button> #}
+      {#           </div> #}
+      {#         </div> #}
+      {#       {% endfor %} #}
+      {#     {% else %} #}
+      {#       <div class="form-group row"> #}
+      {#         <div class="col-md-10"> #}
+      {#           <select class="form-control"> #}
+      {#             <option value=""></option> #}
+      {#             {% for a in agents|sort(attribute = "name") %} #}
+      {#               <option value="{{ a["_id"] }}">{{ a["name"] }}</option> #}
+      {#             {% endfor %} #}
+      {#           </select> #}
+      {#         </div> #}
+      {#         <div class="col-md-2"> #}
+      {#           {% set onclickjs1 = "$(this).closest('div.row').clone().prependTo($(this).closest('div.well'))" %} #}
+      {#           <button type="button" class="btn btn-success btn-sm" onclick="{{ onclickjs1 }}">+</button> #}
+      {#           {% set onclickjs2 = "$(this).closest('div.row').remove()" %} #}
+      {#           <button type="button" class="btn btn-danger btn-sm" onclick="{{ onclickjs2 }}">-</button> #}
+      {#         </div> #}
+      {#       </div> #}
+      {#     {% endif %} #}
+      {#   </div> #}
+      {# </fieldset> #}
       <fieldset class="form-group" id="filters" disabled>
         <legend>Aktive Filter</legend>
         <div class="well">
