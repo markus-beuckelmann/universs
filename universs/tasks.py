@@ -10,6 +10,7 @@ from universs.rss import pull
 from universs.helpers import httpcheck
 
 from pymongo.errors import DuplicateKeyError, BulkWriteError
+from pymongo import ASCENDING, DESCENDING
 
 from datetime import datetime
 from hashlib import md5
@@ -39,6 +40,11 @@ celery.conf.beat_schedule = {
     },
     'auto-update-feed-metadata': {
         'task': 'universs.update_feed_metadata',
+        # Once every 24h
+        'schedule': 86400
+    },
+    'auto-update-indexes': {
+        'task': 'universs.indexes',
         # Once every 24h
         'schedule': 86400
     }
@@ -378,16 +384,19 @@ def update_tag_metadata(*args, **kwargs):
 
     return True
 
+@celery.task(name = 'universs.indexes')
 def indexes(*args, **kwargs):
     ''' Ensures proper database indexes. '''
 
     db = dbinit()
 
-    # Set containing fields that should be indexed
-    keys = {'date', 'show', 'marked', 'starred', 'foo'}
-    # Create a set of all existing indices
-    indices = {index['key'].keys()[0] for index in db.articles.list_indexes()} - {'_id'}
+    # Articles
+    db.articles.create_index([('_id', ASCENDING), ('id', ASCENDING), ('show', ASCENDING), ('tags', ASCENDING), ('feed-name', ASCENDING), ('read', ASCENDING), ('marked', ASCENDING), ('starred', ASCENDING), ('date', DESCENDING)])
+    # Feeds
+    db.feeds.create_index([('_id', ASCENDING), ('title', ASCENDING), ('tags', ASCENDING)])
+    # Tags
+    db.tags.create_index([('_id', ASCENDING), ('feeds', ASCENDING), ('title', ASCENDING)])
 
-    # Add the missing indices
-    for missing in (keys - indices):
-        db.articles.create_index(missing)
+def backup(*args, **kwargs):
+    ''' Writes a backup of the database to disk. '''
+    db = dbinit()
